@@ -7,10 +7,10 @@ services:
       dockerfile: ./Dockerfile
     environment:
       - NODE_ENV=production
-      - DB_HOST=${DB_HOST:-postgres}
-      - DB_USER=${DB_USER:-ticketz}
-      - DB_PASS=${DB_PASS:-ticketz}
-      - DB_NAME=${DB_NAME:-ticketz}
+      - DB_HOST=twkw00kcwco0skoss80000c4
+      - DB_USER=postgres
+      - DB_PASS=iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP
+      - DB_NAME=postgres
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - REDIS_URI=redis://${REDIS_HOST:-redis}:6379
