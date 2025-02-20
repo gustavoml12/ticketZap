@@ -18,7 +18,7 @@ services:
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - REDIS_HOST=${COOLIFY_REDIS_HOST:-10.0.2.10}
       - REDIS_PORT=${COOLIFY_REDIS_PORT:-6379}
-      - REDIS_PASSWORD=${COOLIFY_REDIS_PASSWORD:-${REDIS_PASSWORD}}
+      - REDIS_PASSWORD=${COOLIFY_REDIS_PASSWORD}
       - FRONTEND_URL=https://ticket.ebnez.com.br
       - NODE_OPTIONS=--max-old-space-size=384
       - BASE_URL=/backend
