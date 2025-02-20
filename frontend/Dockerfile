@@ -27,18 +27,18 @@ WORKDIR /usr/share/nginx/html
 COPY --from=build-deps /usr/src/app/build /var/www/public
 COPY --from=build-deps /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist /var/www/public/socket-admin
 
-# Copy manifest and config files
+# Copy config.json to the correct location
+COPY --from=build-deps /usr/src/app/public/config.json /var/www/public/config.json
+
+# Copy nginx configuration
+COPY nginx /etc/nginx
+
+# Create necessary directories and files
 RUN mkdir -p /var/www/public/settings && \
     echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff"}' > /var/www/public/manifest.json && \
     echo '{"value":"#2196f3"}' > /var/www/public/settings/primaryColorLight.json && \
     echo '{"value":""}' > /var/www/public/settings/appLogoLight.json && \
     echo '{"value":"light"}' > /var/www/public/settings/theme.json
 
-# Copy nginx configuration
-COPY nginx /etc/nginx
-
 ENTRYPOINT ["dumb-init", "--"]
-CMD (echo "{" && while IFS='=' read -r name value; do \
-        printf '\t"%s": "%s"\n' "$name" "$value"; \
-    done < <(env) | sed '$!s/$/,/' && echo "}")  > /var/www/public/config.json \
-    && nginx -g "daemon off;"
+CMD ["nginx", "-g", "daemon off;"]
