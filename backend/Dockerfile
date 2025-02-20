@@ -36,24 +36,38 @@ COPY --from=build --parents \
   /usr/src/app/./scripts \
   .
 
-# Create necessary directories
-RUN mkdir -p /usr/src/app/public /usr/src/app/private
+# Create necessary directories with correct permissions
+RUN mkdir -p /usr/src/app/public /usr/src/app/private && \
+    chown -R node:node /usr/src/app
 
+# Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV TICKETZ_REGISTRY_URL=${TICKETZ_REGISTRY_URL}
 
+# Expose the application port
 EXPOSE 3000
-
-# Set permissions
-RUN chown -R node:node /usr/src/app
 
 # Switch to non-root user
 USER node
 
-CMD dockerize -wait tcp://${DB_HOST}:5432 -timeout 60s \
-  && npx sequelize db:migrate  --config dist/config/database.js --migrations-path dist/database/migrations \
-  && ./scripts/load-retrieved.sh /retrieve; exit_code=$? \
-  && if [ $exit_code -eq 1 ]; then npm run mark-seeds; exit 0; elif [ $exit_code -ge 100 ]; then exit 1; fi \
-  && npx sequelize db:seed:all --config dist/config/database.js --seeders-path dist/database/seeds \
-  && node dist/server.js
+# Create a startup script
+COPY --chown=node:node <<EOF /usr/src/app/docker-entrypoint.sh
+#!/bin/sh
+set -e
+
+# Wait for database
+dockerize -wait tcp://\${DB_HOST}:5432 -timeout 60s
+
+# Run migrations
+npx sequelize db:migrate --config dist/config/database.js --migrations-path dist/database/migrations
+
+# Run the application
+exec node dist/server.js
+EOF
+
+# Make the entrypoint script executable
+RUN chmod +x /usr/src/app/docker-entrypoint.sh
+
+# Set the entrypoint
+ENTRYPOINT ["/usr/src/app/docker-entrypoint.sh"]
