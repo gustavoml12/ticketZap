@@ -37,6 +37,31 @@ RUN mkdir -p /usr/src/app/private && \
 
 USER node
 
+# Criar arquivo de configuração do PM2
+COPY --chown=node:node <<EOF /usr/src/app/ecosystem.config.js
+module.exports = {
+  apps: [{
+    name: 'ticketz-backend',
+    script: 'dist/server.js',
+    instances: 1,
+    exec_mode: 'cluster',
+    max_memory_restart: '400M',
+    env: {
+      NODE_ENV: 'production'
+    },
+    error_file: '/usr/src/app/logs/err.log',
+    out_file: '/usr/src/app/logs/out.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    merge_logs: true,
+    max_restarts: 5,
+    min_uptime: '30s'
+  }]
+}
+EOF
+
+# Criar diretório de logs
+RUN mkdir -p /usr/src/app/logs
+
 COPY --chown=node:node <<EOF /usr/src/app/docker-entrypoint.sh
 #!/bin/sh
 set -e
@@ -48,7 +73,7 @@ until pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER; do
 done
 
 # Iniciar a aplicação com PM2
-exec pm2-runtime dist/server.js
+exec pm2-runtime start ecosystem.config.js
 EOF
 
 RUN chmod +x /usr/src/app/docker-entrypoint.sh

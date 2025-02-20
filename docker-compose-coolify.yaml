@@ -23,12 +23,14 @@ services:
       - FRONTEND_URL=https://ticket.ebnez.com.br
       - NODE_OPTIONS="--max-old-space-size=384 --max-semi-space-size=64"
       - BASE_URL=/backend
+      - PM2_PUBLIC_KEY=${PM2_PUBLIC_KEY}
+      - PM2_SECRET_KEY=${PM2_SECRET_KEY}
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "--tries=1", "http://localhost:3000/backend/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/backend/health"]
       interval: 30s
       timeout: 10s
-      retries: 5
-      start_period: 60s
+      retries: 3
+      start_period: 90s
     ports:
       - "3000"
     volumes:
