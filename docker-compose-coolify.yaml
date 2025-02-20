@@ -55,6 +55,7 @@ services:
     volumes:
       - backend_data:/var/www/backend-public:ro
       - backend_private:/var/www/backend-private:ro
+      - frontend_public:/var/www/public
     networks:
       - coolify
     depends_on:
@@ -74,9 +75,8 @@ services:
 
 volumes:
   backend_data:
-    driver: local
   backend_private:
-    driver: local
+  frontend_public:
 
 networks:
   coolify:
