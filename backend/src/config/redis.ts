@@ -1,7 +1,7 @@
 import Redis from "ioredis";
 
 const redisConfig: any = {
-  host: process.env.REDIS_HOST || "127.0.0.1",
+  host: process.env.REDIS_HOST || "10.0.2.10",
   port: parseInt(process.env.REDIS_PORT || "6379"),
   retryStrategy: (times: number) => {
     console.log(`Redis retry attempt ${times}`);

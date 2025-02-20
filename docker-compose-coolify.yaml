@@ -14,10 +14,10 @@ services:
       - DB_PASS=iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP
       - DB_NAME=postgres
       - DB_PORT=5432
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
+      - JWT_SECRET=ticket
+      - JWT_REFRESH_SECRET=ticket-refresh
+      - REDIS_HOST=10.0.2.10
+      - REDIS_PORT=6379
       - FRONTEND_URL=https://ticket.ebnez.com.br
       - NODE_OPTIONS=--max-old-space-size=384
       - BASE_URL=/backend
