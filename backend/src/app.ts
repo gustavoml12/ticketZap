@@ -35,6 +35,11 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(Sentry.Handlers.requestHandler());
 
+// Health check endpoint
+app.get(`${baseUrl}/health`, (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Servir arquivos estáticos
 app.use(`${baseUrl}/public`, express.static(uploadConfig.directory));
 app.use(baseUrl, express.static(path.resolve(__dirname, "..", "public")));

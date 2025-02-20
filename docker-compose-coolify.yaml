@@ -20,6 +20,12 @@ services:
       - FRONTEND_URL=https://ticket.ebnez.com.br
       - NODE_OPTIONS="--max-old-space-size=512"
       - BASE_URL=/backend
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/backend/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     ports:
       - "3000"
     volumes:
@@ -31,6 +37,11 @@ services:
           memory: 1G
         reservations:
           memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   frontend:
     build:
@@ -43,13 +54,19 @@ services:
       - backend_data:/var/www/backend-public:ro
       - backend_private:/var/www/backend-private:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     deploy:
       resources:
         limits:
           memory: 256M
         reservations:
           memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
 volumes:
   backend_data:
