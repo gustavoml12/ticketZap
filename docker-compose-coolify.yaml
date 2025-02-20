@@ -21,7 +21,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - FRONTEND_URL=https://ticket.ebnez.com.br
-      - NODE_OPTIONS="--max-old-space-size=384 --max-semi-space-size=64"
+      - NODE_OPTIONS=--max-old-space-size=384
       - BASE_URL=/backend
       - PM2_PUBLIC_KEY=${PM2_PUBLIC_KEY}
       - PM2_SECRET_KEY=${PM2_SECRET_KEY}
