@@ -1,7 +1,7 @@
 import Redis from "ioredis";
 
 const redisConfig: any = {
-  host: process.env.REDIS_HOST,
+  host: process.env.REDIS_HOST || "127.0.0.1",
   port: parseInt(process.env.REDIS_PORT || "6379"),
   password: process.env.REDIS_PASSWORD,
   retryStrategy: (times: number) => {
@@ -25,13 +25,15 @@ const redisConfig: any = {
       return true;
     }
     return false;
-  }
+  },
+  tls: process.env.REDIS_TLS === "true" ? {} : undefined
 };
 
-console.log("Redis config:", {
+console.log("Attempting Redis connection with config:", {
   host: redisConfig.host,
   port: redisConfig.port,
-  hasPassword: !!redisConfig.password
+  hasPassword: !!redisConfig.password,
+  tls: !!redisConfig.tls
 });
 
 export const redis = new Redis(redisConfig);
