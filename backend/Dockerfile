@@ -18,8 +18,9 @@ COPY . .
 # Create public directory and default files during build
 RUN mkdir -p public/settings && \
     echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff"}' > public/manifest.json && \
-    echo '{"value":"#2196f3"}' > public/settings/primaryColorLight && \
-    echo '{"value":""}' > public/settings/appLogoLight
+    echo '{"value":"#2196f3"}' > public/settings/primaryColorLight.json && \
+    echo '{"value":""}' > public/settings/appLogoLight.json && \
+    echo '{"value":"light"}' > public/settings/theme.json
 
 # Build the application
 RUN npm run build
