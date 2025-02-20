@@ -18,15 +18,16 @@ services:
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - REDIS_URI=redis://${REDIS_HOST:-redis}:6379
       - FRONTEND_URL=${FRONTEND_URL}
+      - NODE_OPTIONS="--max-old-space-size=512"
     volumes:
       - backend_data:/usr/src/app/public
       - backend_private:/usr/src/app/private
-    healthcheck:
-      test: ["CMD", "pgrep", "node"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
 
   frontend:
     build:
@@ -39,14 +40,13 @@ services:
       - backend_data:/var/www/backend-public:ro
       - backend_private:/var/www/backend-private:ro
     depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
 
 volumes:
   backend_data:

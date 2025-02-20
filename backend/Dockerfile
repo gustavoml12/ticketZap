@@ -1,16 +1,16 @@
 # syntax=docker/dockerfile:1.7-labs
 
 # Stage 1: Build the application
-FROM node:20 AS build
+FROM node:20-alpine AS build
 
 WORKDIR /usr/src/app
 
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies with npm install instead of npm ci
+# Install dependencies with npm ci for production
 RUN --mount=type=cache,target=/root/.npm \
-    npm install
+    npm ci --only=production
 
 # Copy the rest of the application
 COPY . .
@@ -19,22 +19,14 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Create the final image without source files
-FROM ghcr.io/ticketz-oss/node
-
-ARG TICKETZ_REGISTRY_URL
+FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-# Install procps for pgrep
-RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
-
 # Copy only the necessary build artifacts from the build stage
-COPY --from=build --parents \
-  /usr/src/app/./dist \
-  /usr/src/app/./node_modules \
-  /usr/src/app/./package.json \
-  /usr/src/app/./scripts \
-  .
+COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/node_modules ./node_modules
+COPY --from=build /usr/src/app/package.json ./package.json
 
 # Create necessary directories with correct permissions
 RUN mkdir -p /usr/src/app/public /usr/src/app/private && \
@@ -43,7 +35,6 @@ RUN mkdir -p /usr/src/app/public /usr/src/app/private && \
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV TICKETZ_REGISTRY_URL=${TICKETZ_REGISTRY_URL}
 
 # Expose the application port
 EXPOSE 3000
@@ -56,13 +47,24 @@ COPY --chown=node:node <<EOF /usr/src/app/docker-entrypoint.sh
 #!/bin/sh
 set -e
 
-# Wait for database
-dockerize -wait tcp://\${DB_HOST}:5432 -timeout 60s
+echo "Waiting for database..."
+# Wait for database using nc (built into alpine)
+timeout=60
+while ! nc -z \${DB_HOST} 5432 && [ \$timeout -gt 0 ]; do
+  echo "Database is unavailable - sleeping"
+  timeout=\$((timeout-1))
+  sleep 1
+done
 
-# Run migrations
+if [ \$timeout -le 0 ]; then
+  echo "Database connection timeout"
+  exit 1
+fi
+
+echo "Database is up - running migrations"
 npx sequelize db:migrate --config dist/config/database.js --migrations-path dist/database/migrations
 
-# Run the application
+echo "Starting application..."
 exec node dist/server.js
 EOF
 
