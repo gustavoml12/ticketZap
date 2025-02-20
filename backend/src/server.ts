@@ -49,6 +49,11 @@ async function startServer() {
   }
 }
 
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.send("OK");
+});
+
 // Create and start the server
 const server = app.listen(process.env.PORT, async () => {
   logger.info(`Server is listening on port: ${process.env.PORT}`);

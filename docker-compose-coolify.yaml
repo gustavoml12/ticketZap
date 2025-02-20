@@ -21,11 +21,11 @@ services:
       - backend_data:/usr/src/app/public
       - backend_private:/usr/src/app/private
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
   frontend:
     build:
@@ -36,6 +36,7 @@ services:
       - REACT_APP_TITLE=${APP_TITLE:-Ticketz}
     volumes:
       - backend_data:/var/www/backend-public:ro
+      - backend_private:/var/www/backend-private:ro
     depends_on:
       backend:
         condition: service_healthy
