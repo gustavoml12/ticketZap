@@ -8,9 +8,9 @@ WORKDIR /usr/src/app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies with npm ci for production
+# Install dependencies for production
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --only=production
+    npm install --omit=dev
 
 # Copy the rest of the application
 COPY . .
