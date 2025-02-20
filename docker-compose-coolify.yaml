@@ -8,8 +8,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@postgres:5432/postgres
-      - DB_HOST=postgres
+      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
+      - DB_HOST=twkw00kcwco0skoss80000c4
       - DB_USER=postgres
       - DB_PASS=iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP
       - DB_NAME=postgres
@@ -33,7 +33,6 @@ services:
       - backend_private:/usr/src/app/private
     networks:
       - coolify
-      - coolify-infra
     deploy:
       resources:
         limits:
@@ -81,6 +80,4 @@ volumes:
 
 networks:
   coolify:
-    external: true
-  coolify-infra:
     external: true
