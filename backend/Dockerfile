@@ -4,10 +4,19 @@
 FROM node:20 AS build
 
 WORKDIR /usr/src/app
+
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install dependencies with npm install instead of npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm install
+
+# Copy the rest of the application
 COPY . .
 
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci && npm run build
+# Build the application
+RUN npm run build
 
 # Stage 2: Create the final image without source files
 FROM ghcr.io/ticketz-oss/node
