@@ -17,6 +17,7 @@ import { messageQueue, sendScheduledMessages } from "./queues";
 Sentry.init({ dsn: process.env.SENTRY_DSN });
 
 const app = express();
+const baseUrl = process.env.BASE_URL || '/backend';
 
 app.set("queues", {
   messageQueue,
@@ -35,15 +36,16 @@ app.use(express.json());
 app.use(Sentry.Handlers.requestHandler());
 
 // Servir arquivos estáticos
-app.use("/public", express.static(uploadConfig.directory));
-app.use(express.static(path.resolve(__dirname, "..", "public")));
+app.use(`${baseUrl}/public`, express.static(uploadConfig.directory));
+app.use(baseUrl, express.static(path.resolve(__dirname, "..", "public")));
 
-// Servir manifest.json e configurações públicas
-app.get("/manifest.json", (req, res) => {
+// Servir manifest.json
+app.get(`${baseUrl}/manifest.json`, (req, res) => {
   res.sendFile(path.resolve(__dirname, "..", "public", "manifest.json"));
 });
 
-app.get("/backend/public-settings/:setting", (req, res) => {
+// Servir configurações públicas
+app.get(`${baseUrl}/public-settings/:setting`, (req, res) => {
   const { setting } = req.params;
   const settingsPath = path.resolve(__dirname, "..", "public", "settings", setting);
   res.sendFile(settingsPath, (err) => {
@@ -53,7 +55,8 @@ app.get("/backend/public-settings/:setting", (req, res) => {
   });
 });
 
-app.use(routes);
+// Adicionar o prefixo base às rotas da API
+app.use(baseUrl, routes);
 
 app.use(Sentry.Handlers.errorHandler());
 app.use(async (err: Error, req: Request, res: Response, _: NextFunction) => {

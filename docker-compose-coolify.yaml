@@ -17,8 +17,11 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - REDIS_URI=redis://${REDIS_HOST:-redis}:6379
-      - FRONTEND_URL=${FRONTEND_URL}
+      - FRONTEND_URL=https://ticket.ebnez.com.br
       - NODE_OPTIONS="--max-old-space-size=512"
+      - BASE_URL=/backend
+    ports:
+      - "3000"
     volumes:
       - backend_data:/usr/src/app/public
       - backend_private:/usr/src/app/private
@@ -34,7 +37,7 @@ services:
       context: ./frontend
       dockerfile: ./Dockerfile
     environment:
-      - REACT_APP_BACKEND_URL=${BACKEND_URL}
+      - REACT_APP_BACKEND_URL=https://ticket.ebnez.com.br/backend
       - REACT_APP_TITLE=${APP_TITLE:-Ticketz}
     volumes:
       - backend_data:/var/www/backend-public:ro
