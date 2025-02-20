@@ -1,36 +1,38 @@
 import Redis from "ioredis";
 
-let redisConfig: any;
+const redisConfig: any = {
+  host: process.env.REDIS_HOST,
+  port: parseInt(process.env.REDIS_PORT || "6379"),
+  password: process.env.REDIS_PASSWORD,
+  retryStrategy: (times: number) => {
+    console.log(`Redis retry attempt ${times}`);
+    if (times > 20) {
+      console.error("Max Redis retries reached, giving up");
+      return null; // stop retrying
+    }
+    const delay = Math.min(times * 100, 3000);
+    console.log(`Retrying Redis connection in ${delay}ms`);
+    return delay;
+  },
+  maxRetriesPerRequest: 3,
+  showFriendlyErrorStack: true,
+  enableAutoPipelining: true,
+  connectTimeout: 10000,
+  lazyConnect: true,
+  reconnectOnError: (err) => {
+    const targetError = "READONLY";
+    if (err.message.includes(targetError)) {
+      return true;
+    }
+    return false;
+  }
+};
 
-if (process.env.REDIS_URI) {
-  console.log("Using Redis URI for connection");
-  redisConfig = process.env.REDIS_URI;
-} else {
-  console.log("Using individual Redis config values");
-  redisConfig = {
-    host: process.env.REDIS_HOST || "redis",
-    port: parseInt(process.env.REDIS_PORT || "6379"),
-    password: process.env.REDIS_PASSWORD
-  };
-}
-
-// Add common options
-if (typeof redisConfig === 'object') {
-  redisConfig = {
-    ...redisConfig,
-    retryStrategy: (times: number) => {
-      const delay = Math.min(times * 50, 2000);
-      return delay;
-    },
-    maxRetriesPerRequest: 5,
-    showFriendlyErrorStack: true,
-    enableAutoPipelining: true,
-    connectTimeout: 10000,
-    lazyConnect: true
-  };
-}
-
-console.log("Redis connection mode:", typeof redisConfig === 'string' ? 'URI' : 'Config Object');
+console.log("Redis config:", {
+  host: redisConfig.host,
+  port: redisConfig.port,
+  hasPassword: !!redisConfig.password
+});
 
 export const redis = new Redis(redisConfig);
 
@@ -38,14 +40,24 @@ redis.on("error", (error) => {
   if (error.message.includes('WRONGPASS')) {
     console.error("Redis authentication failed. Please check your Redis password configuration.");
   } else if (error.message.includes('ECONNREFUSED')) {
-    console.error("Redis connection refused. Please check Redis connection settings and ensure Redis is running.");
+    console.error(`Redis connection refused at ${redisConfig.host}:${redisConfig.port}. Please check if Redis is running and network connectivity.`);
+  } else if (error.message.includes('ETIMEDOUT')) {
+    console.error(`Redis connection timed out at ${redisConfig.host}:${redisConfig.port}. Please check network connectivity.`);
   } else {
-    console.error("Redis connection error:", error);
+    console.error("Redis connection error:", error.message);
   }
 });
 
 redis.on("connect", () => {
-  console.log("Connected to Redis successfully");
+  console.log(`Successfully connected to Redis at ${redisConfig.host}:${redisConfig.port}`);
+});
+
+redis.on("ready", () => {
+  console.log("Redis client is ready to process commands");
+});
+
+redis.on("reconnecting", () => {
+  console.log("Reconnecting to Redis...");
 });
 
 export const REDIS_URI_CONNECTION = process.env.REDIS_URI || "";

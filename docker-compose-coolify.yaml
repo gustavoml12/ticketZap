@@ -16,7 +16,9 @@ services:
       - DB_PORT=5432
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
-      - REDIS_URI=redis://:${REDIS_PASSWORD}@twkw00kcwco0skoss80000c4:6379
+      - REDIS_HOST=ticketzap-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - FRONTEND_URL=https://ticket.ebnez.com.br
       - NODE_OPTIONS=--max-old-space-size=384
       - BASE_URL=/backend
@@ -35,6 +37,9 @@ services:
       - backend_private:/usr/src/app/private
     networks:
       - coolify
+    depends_on:
+      ticketzap-redis:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -46,6 +51,30 @@ services:
         delay: 30s
         max_attempts: 5
         window: 180s
+
+  ticketzap-redis:
+    image: redis:7-alpine
+    container_name: ticketzap-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - coolify
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        window: 120s
 
   frontend:
     build:
