@@ -21,8 +21,8 @@ FROM ghcr.io/ticketz-oss/nginx-alpine:latest
 WORKDIR /var/www/public
 
 # Copy build files from build stage
-COPY --from=build-deps /usr/src/app/build .
-COPY --from=build-deps /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist socket-admin
+COPY --from=build-deps /usr/src/app/build/ .
+COPY --from=build-deps /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist ./socket-admin
 
 # Copy nginx configuration
 COPY nginx /etc/nginx
