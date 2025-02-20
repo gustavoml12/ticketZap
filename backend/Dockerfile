@@ -25,8 +25,8 @@ ARG TICKETZ_REGISTRY_URL
 
 WORKDIR /usr/src/app
 
-# Install curl for healthcheck
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install procps for pgrep
+RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
 
 # Copy only the necessary build artifacts from the build stage
 COPY --from=build --parents \

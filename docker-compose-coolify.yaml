@@ -22,11 +22,11 @@ services:
       - backend_data:/usr/src/app/public
       - backend_private:/usr/src/app/private
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 60s
-      timeout: 30s
-      retries: 5
-      start_period: 180s
+      test: ["CMD", "pgrep", "node"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   frontend:
     build:
