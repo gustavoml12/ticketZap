@@ -12,33 +12,28 @@ RUN --mount=type=cache,target=/root/.npm \
 # Copy the rest of the application
 COPY . .
 
-# Create config.json during build
-RUN echo '{"BACKEND_PROTOCOL":"https","BACKEND_HOST":"ticket.ebnez.com.br","BACKEND_PATH":"/backend"}' > /usr/src/app/public/config.json
-
 # Build the application
 RUN npm run build
 
 # Stage 2: Create the final image
 FROM ghcr.io/ticketz-oss/nginx-alpine:latest
 
-WORKDIR /usr/share/nginx/html
+WORKDIR /var/www/public
 
 # Copy build files from build stage
-COPY --from=build-deps /usr/src/app/build /var/www/public
-COPY --from=build-deps /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist /var/www/public/socket-admin
-
-# Copy config.json to the correct location
-COPY --from=build-deps /usr/src/app/public/config.json /var/www/public/config.json
+COPY --from=build-deps /usr/src/app/build .
+COPY --from=build-deps /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist socket-admin
 
 # Copy nginx configuration
 COPY nginx /etc/nginx
 
 # Create necessary directories and files
-RUN mkdir -p /var/www/public/settings && \
-    echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff"}' > /var/www/public/manifest.json && \
-    echo '{"value":"#2196f3"}' > /var/www/public/settings/primaryColorLight.json && \
-    echo '{"value":""}' > /var/www/public/settings/appLogoLight.json && \
-    echo '{"value":"light"}' > /var/www/public/settings/theme.json
+RUN mkdir -p settings && \
+    echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff"}' > manifest.json && \
+    echo '{"value":"#2196f3"}' > settings/primaryColorLight.json && \
+    echo '{"value":""}' > settings/appLogoLight.json && \
+    echo '{"value":"light"}' > settings/theme.json && \
+    echo '{"BACKEND_PROTOCOL":"https","BACKEND_HOST":"ticket.ebnez.com.br","BACKEND_PATH":"/backend"}' > config.json
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["nginx", "-g", "daemon off;"]
