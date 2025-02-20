@@ -25,6 +25,9 @@ ARG TICKETZ_REGISTRY_URL
 
 WORKDIR /usr/src/app
 
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Copy only the necessary build artifacts from the build stage
 COPY --from=build --parents \
   /usr/src/app/./dist \
@@ -33,11 +36,20 @@ COPY --from=build --parents \
   /usr/src/app/./scripts \
   .
 
+# Create necessary directories
+RUN mkdir -p /usr/src/app/public /usr/src/app/private
+
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV TICKETZ_REGISTRY_URL=${TICKETZ_REGISTRY_URL}
 
 EXPOSE 3000
+
+# Set permissions
+RUN chown -R node:node /usr/src/app
+
+# Switch to non-root user
+USER node
 
 CMD dockerize -wait tcp://${DB_HOST}:5432 -timeout 60s \
   && npx sequelize db:migrate  --config dist/config/database.js --migrations-path dist/database/migrations \

@@ -7,6 +7,7 @@ services:
       dockerfile: ./Dockerfile
     environment:
       - NODE_ENV=production
+      - PORT=3000
       - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
       - DB_HOST=twkw00kcwco0skoss80000c4
       - DB_USER=postgres
@@ -21,11 +22,11 @@ services:
       - backend_data:/usr/src/app/public
       - backend_private:/usr/src/app/private
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 120s
 
   frontend:
     build:
@@ -41,11 +42,11 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 15s
+      start_period: 120s
 
 volumes:
   backend_data:
