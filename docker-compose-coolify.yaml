@@ -16,8 +16,7 @@ services:
       - DB_PORT=5432
       - JWT_SECRET=ticket
       - JWT_REFRESH_SECRET=ticket-refresh
-      - REDIS_HOST=10.0.2.10
-      - REDIS_PORT=6379
+      - REDIS_URI=redis://default:rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY@hsscggc48w4oo8c84o8ww4ck:6379/0
       - FRONTEND_URL=https://ticket.ebnez.com.br
       - NODE_OPTIONS=--max-old-space-size=384
       - BASE_URL=/backend

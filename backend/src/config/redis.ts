@@ -1,7 +1,7 @@
 import Redis from "ioredis";
 
-const redisConfig: any = {
-  host: process.env.REDIS_HOST || "10.0.2.10",
+const redisConfig: any = process.env.REDIS_URI || {
+  host: process.env.REDIS_HOST || "127.0.0.1",
   port: parseInt(process.env.REDIS_PORT || "6379"),
   retryStrategy: (times: number) => {
     console.log(`Redis retry attempt ${times}`);
@@ -27,7 +27,7 @@ const redisConfig: any = {
   }
 };
 
-console.log("Attempting Redis connection with config:", {
+console.log("Attempting Redis connection with config:", typeof redisConfig === 'string' ? 'Using Redis URI' : {
   host: redisConfig.host,
   port: redisConfig.port
 });
@@ -38,16 +38,16 @@ redis.on("error", (error) => {
   if (error.message.includes('WRONGPASS')) {
     console.error("Redis authentication failed. Please check your Redis password configuration.");
   } else if (error.message.includes('ECONNREFUSED')) {
-    console.error(`Redis connection refused at ${redisConfig.host}:${redisConfig.port}. Please check if Redis is running and network connectivity.`);
+    console.error(`Redis connection refused. Please check if Redis is running and network connectivity.`);
   } else if (error.message.includes('ETIMEDOUT')) {
-    console.error(`Redis connection timed out at ${redisConfig.host}:${redisConfig.port}. Please check network connectivity.`);
+    console.error(`Redis connection timed out. Please check network connectivity.`);
   } else {
     console.error("Redis connection error:", error.message);
   }
 });
 
 redis.on("connect", () => {
-  console.log(`Successfully connected to Redis at ${redisConfig.host}:${redisConfig.port}`);
+  console.log("Successfully connected to Redis");
 });
 
 redis.on("ready", () => {
