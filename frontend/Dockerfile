@@ -28,12 +28,12 @@ COPY --from=build-deps /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist ./s
 COPY nginx /etc/nginx
 
 # Create necessary directories and files
-RUN mkdir -p settings && \
-    echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff"}' > manifest.json && \
-    echo '{"value":"#2196f3"}' > settings/primaryColorLight.json && \
-    echo '{"value":""}' > settings/appLogoLight.json && \
-    echo '{"value":"light"}' > settings/theme.json && \
-    echo '{"BACKEND_PROTOCOL":"https","BACKEND_HOST":"ticket.ebnez.com.br","BACKEND_PATH":"/backend"}' > config.json
+RUN mkdir -p settings public-settings && \
+    echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff"}' > public-settings/manifest.json && \
+    echo '{"value":"#2196f3"}' > public-settings/primaryColorLight.json && \
+    echo '{"value":""}' > public-settings/appLogoLight.json && \
+    echo '{"value":"light"}' > public-settings/theme.json && \
+    echo '{"BACKEND_PROTOCOL":"https","BACKEND_HOST":"ticket.ebnez.com.br","BACKEND_PATH":"/backend"}' > public-settings/config.json
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["nginx", "-g", "daemon off;"]
