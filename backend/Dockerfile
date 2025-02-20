@@ -67,7 +67,7 @@ COPY --chown=node:node <<EOF /usr/src/app/docker-entrypoint.sh
 set -e
 
 # Aguardar o PostgreSQL
-until pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER; do
+until pg_isready -h "\${DB_HOST}" -p "\${DB_PORT}" -U "\${DB_USER}"; do
   echo "Aguardando PostgreSQL..."
   sleep 2
 done
