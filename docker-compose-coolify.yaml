@@ -7,10 +7,12 @@ services:
       dockerfile: ./Dockerfile
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
       - DB_HOST=twkw00kcwco0skoss80000c4
       - DB_USER=postgres
       - DB_PASS=iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP
       - DB_NAME=postgres
+      - DB_PORT=5432
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - REDIS_URI=redis://${REDIS_HOST:-redis}:6379
@@ -23,6 +25,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   frontend:
     build:
@@ -34,12 +37,14 @@ services:
     volumes:
       - backend_data:/var/www/backend-public:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
 
 volumes:
   backend_data:
