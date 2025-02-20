@@ -15,6 +15,12 @@ RUN --mount=type=cache,target=/root/.npm \
 # Copy the rest of the application
 COPY . .
 
+# Create public directory and default files during build
+RUN mkdir -p public/settings && \
+    echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff"}' > public/manifest.json && \
+    echo '{"value":"#2196f3"}' > public/settings/primaryColorLight && \
+    echo '{"value":""}' > public/settings/appLogoLight
+
 # Build the application
 RUN npm run build
 
@@ -30,14 +36,8 @@ COPY --from=build /usr/src/app/package.json ./package.json
 COPY --from=build /usr/src/app/public ./public
 
 # Create necessary directories with correct permissions
-RUN mkdir -p /usr/src/app/public/settings && \
-    mkdir -p /usr/src/app/private && \
+RUN mkdir -p /usr/src/app/private && \
     chown -R node:node /usr/src/app
-
-# Create default manifest.json and settings
-RUN echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff"}' > /usr/src/app/public/manifest.json && \
-    echo '{"value":"#2196f3"}' > /usr/src/app/public/settings/primaryColorLight && \
-    echo '{"value":""}' > /usr/src/app/public/settings/appLogoLight
 
 # Set environment variables
 ENV NODE_ENV=production
