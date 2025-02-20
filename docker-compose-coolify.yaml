@@ -21,7 +21,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - FRONTEND_URL=https://ticket.ebnez.com.br
-      - NODE_OPTIONS="--max-old-space-size=512"
+      - NODE_OPTIONS="--max-old-space-size=384 --max-semi-space-size=64"
       - BASE_URL=/backend
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "--tries=1", "http://localhost:3000/backend/health"]
@@ -39,9 +39,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
-        reservations:
           memory: 512M
+        reservations:
+          memory: 256M
       restart_policy:
         condition: on-failure
         delay: 10s
