@@ -29,6 +29,9 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
+# Install required tools
+RUN apk add --no-cache wget curl postgresql-client
+
 # Copy only the necessary build artifacts from the build stage
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
@@ -55,9 +58,9 @@ COPY --chown=node:node <<EOF /usr/src/app/docker-entrypoint.sh
 set -e
 
 echo "Waiting for database..."
-# Wait for database using nc (built into alpine)
+# Wait for database using pg_isready
 timeout=60
-while ! nc -z \${DB_HOST} 5432 && [ \$timeout -gt 0 ]; do
+while ! pg_isready -h "\${DB_HOST}" -p "\${DB_PORT}" -U "\${DB_USER}" >/dev/null 2>&1 && [ \$timeout -gt 0 ]; do
   echo "Database is unavailable - sleeping"
   timeout=\$((timeout-1))
   sleep 1

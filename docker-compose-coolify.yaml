@@ -8,8 +8,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
-      - DB_HOST=twkw00kcwco0skoss80000c4
+      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@postgres:5432/postgres
+      - DB_HOST=postgres
       - DB_USER=postgres
       - DB_PASS=iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP
       - DB_NAME=postgres
@@ -21,16 +21,19 @@ services:
       - NODE_OPTIONS="--max-old-space-size=512"
       - BASE_URL=/backend
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/backend/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+      test: ["CMD", "wget", "--spider", "-q", "--tries=1", "http://localhost:3000/backend/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     ports:
       - "3000"
     volumes:
       - backend_data:/usr/src/app/public
       - backend_private:/usr/src/app/private
+    networks:
+      - coolify
+      - coolify-infra
     deploy:
       resources:
         limits:
@@ -39,8 +42,8 @@ services:
           memory: 512M
       restart_policy:
         condition: on-failure
-        delay: 5s
-        max_attempts: 3
+        delay: 10s
+        max_attempts: 5
         window: 120s
 
   frontend:
@@ -53,6 +56,8 @@ services:
     volumes:
       - backend_data:/var/www/backend-public:ro
       - backend_private:/var/www/backend-private:ro
+    networks:
+      - coolify
     depends_on:
       backend:
         condition: service_healthy
@@ -64,8 +69,8 @@ services:
           memory: 128M
       restart_policy:
         condition: on-failure
-        delay: 5s
-        max_attempts: 3
+        delay: 10s
+        max_attempts: 5
         window: 120s
 
 volumes:
@@ -73,3 +78,9 @@ volumes:
     driver: local
   backend_private:
     driver: local
+
+networks:
+  coolify:
+    external: true
+  coolify-infra:
+    external: true
