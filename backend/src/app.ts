@@ -5,6 +5,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import * as Sentry from "@sentry/node";
+import path from "path";
 
 import "./database";
 import uploadConfig from "./config/upload";
@@ -12,8 +13,6 @@ import AppError from "./errors/AppError";
 import routes from "./routes";
 import { logger } from "./utils/logger";
 import { messageQueue, sendScheduledMessages } from "./queues";
-
-
 
 Sentry.init({ dsn: process.env.SENTRY_DSN });
 
@@ -30,10 +29,30 @@ app.use(
     origin: process.env.FRONTEND_URL
   })
 );
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(Sentry.Handlers.requestHandler());
+
+// Servir arquivos estáticos
 app.use("/public", express.static(uploadConfig.directory));
+app.use(express.static(path.resolve(__dirname, "..", "public")));
+
+// Servir manifest.json e configurações públicas
+app.get("/manifest.json", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "..", "public", "manifest.json"));
+});
+
+app.get("/backend/public-settings/:setting", (req, res) => {
+  const { setting } = req.params;
+  const settingsPath = path.resolve(__dirname, "..", "public", "settings", setting);
+  res.sendFile(settingsPath, (err) => {
+    if (err) {
+      res.status(404).json({ error: "Setting not found" });
+    }
+  });
+});
+
 app.use(routes);
 
 app.use(Sentry.Handlers.errorHandler());
