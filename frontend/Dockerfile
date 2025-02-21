@@ -27,10 +27,6 @@ RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 # Production environment
 FROM nginx:stable-alpine
 
-# Create nginx user and group with specific IDs
-RUN addgroup -g 101 -S nginx \
-    && adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
-
 # Copy custom nginx config
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
@@ -45,8 +41,8 @@ RUN mkdir -p /usr/share/nginx/html/uploads \
     && chown -R nginx:nginx /var/cache/nginx \
     && chown -R nginx:nginx /var/log/nginx \
     && chown -R nginx:nginx /etc/nginx/conf.d \
-    && touch /var/run/nginx.pid \
-    && chown -R nginx:nginx /var/run/nginx.pid
+    && touch /tmp/nginx.pid \
+    && chown -R nginx:nginx /tmp/nginx.pid
 
 # Switch to non-root user
 USER nginx
