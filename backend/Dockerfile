@@ -34,10 +34,12 @@ COPY --from=build /usr/src/app/package.json ./package.json
 # Criar diretórios para mídia
 RUN mkdir -p /usr/src/app/public && \
     mkdir -p /usr/src/app/uploads && \
+    mkdir -p /usr/src/app/private && \
     mkdir -p /usr/src/app/logs && \
     chown -R node:node /usr/src/app && \
     chmod -R 755 /usr/src/app/public && \
     chmod -R 755 /usr/src/app/uploads && \
+    chmod -R 700 /usr/src/app/private && \
     chmod -R 755 /usr/src/app/logs
 
 # Copiar arquivos públicos do build
@@ -72,11 +74,13 @@ set -e
 # Criar diretórios necessários caso não existam
 mkdir -p /usr/src/app/public
 mkdir -p /usr/src/app/uploads
+mkdir -p /usr/src/app/private
 mkdir -p /usr/src/app/logs
 
 # Ajustar permissões
 chmod -R 755 /usr/src/app/public
 chmod -R 755 /usr/src/app/uploads
+chmod -R 700 /usr/src/app/private
 chmod -R 755 /usr/src/app/logs
 
 # Iniciar a aplicação

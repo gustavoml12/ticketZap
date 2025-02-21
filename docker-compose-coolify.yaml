@@ -38,11 +38,13 @@ services:
       - PORT=3000
       - UPLOAD_DIR=/app/uploads
       - PUBLIC_DIR=/app/public
+      - PRIVATE_DIR=/app/private
     ports:
       - "3000:3000"
     volumes:
       - media_storage:/app/uploads
       - system_media:/app/public
+      - private_files:/app/private
     restart: unless-stopped
     deploy:
       resources:
@@ -84,3 +86,5 @@ volumes:
     name: ${COOLIFY_VOLUME_MEDIA:-media_storage}
   system_media:
     name: ${COOLIFY_VOLUME_SYSTEM:-system_media}
+  private_files:
+    name: private_files

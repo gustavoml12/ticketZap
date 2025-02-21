@@ -41,7 +41,8 @@ app.get(`${baseUrl}/health`, (req, res) => {
 });
 
 // Servir arquivos estáticos
-app.use(`${baseUrl}/public`, express.static(uploadConfig.directory));
+app.use(`${baseUrl}/uploads`, express.static(uploadConfig.uploadsDirectory));
+app.use(`${baseUrl}/public`, express.static(uploadConfig.publicDirectory));
 app.use(baseUrl, express.static(path.resolve(__dirname, "..", "public")));
 
 // Servir manifest.json
