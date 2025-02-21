@@ -66,7 +66,7 @@ services:
       args:
         NODE_ENV: production
     ports:
-      - "66467:8080"
+      - "65467:8080"
     environment:
       - NODE_ENV=production
       - BACKEND_URL=http://backend:3000
