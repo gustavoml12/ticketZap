@@ -29,15 +29,20 @@ COPY nginx /etc/nginx
 
 # Create necessary directories and files
 RUN mkdir -p public-settings/vector && \
+    mkdir -p settings && \
     echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff","icons":[{"src":"/vector/favicon.ico","sizes":"64x64 32x32 24x24 16x16","type":"image/x-icon"}]}' > manifest.json && \
     echo '{"value":"#2196f3"}' > public-settings/primaryColorLight.json && \
     echo '{"value":""}' > public-settings/appLogoLight.json && \
     echo '{"value":"light"}' > public-settings/theme.json && \
-    echo '{"BACKEND_PROTOCOL":"https","BACKEND_HOST":"ticket.ebnez.com.br","BACKEND_PATH":"/backend"}' > config.json && \
+    echo '{"BACKEND_PROTOCOL":"http","BACKEND_HOST":"backend","BACKEND_PORT":"3000","BACKEND_PATH":""}' > config.json && \
     echo '{"value":"#2196f3"}' > settings/primaryColorLight.json && \
     echo '{"value":""}' > settings/appLogoLight.json && \
     echo '{"value":"light"}' > settings/theme.json && \
     touch public-settings/vector/favicon.ico
+
+# Set proper permissions
+RUN chown -R nginx:nginx /var/www/public && \
+    chmod -R 755 /var/www/public
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["nginx", "-g", "daemon off;"]

@@ -69,15 +69,15 @@ services:
     depends_on:
       - backend
     ports:
-      - "80"
+      - "80:80"
     networks:
       - coolify
     deploy:
       resources:
         limits:
-          memory: 128M
+          memory: 256M
         reservations:
-          memory: 64M
+          memory: 128M
       restart_policy:
         condition: on-failure
         delay: 30s
