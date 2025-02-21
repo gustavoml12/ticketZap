@@ -1,7 +1,8 @@
 FROM node:20-alpine as build-deps
 
 # Set environment variables for better performance
-ENV NODE_ENV=production
+ENV NODE_ENV=development
+ENV PATH /usr/src/app/node_modules/.bin:$PATH
 ENV DISABLE_ESLINT_PLUGIN=true
 ENV GENERATE_SOURCEMAP=false
 ENV CI=false
@@ -11,12 +12,10 @@ WORKDIR /usr/src/app
 # Copy package files
 COPY package*.json ./
 
-# Tenta primeiro com npm install normal
-RUN npm install --prefer-offline --no-audit || \
-    # Se falhar, tenta com --legacy-peer-deps
-    npm install --prefer-offline --no-audit --legacy-peer-deps || \
-    # Se ainda falhar, remove o lock e tenta novamente
-    (rm -f package-lock.json && npm install --no-audit --legacy-peer-deps)
+# Install dependencies including react-scripts
+RUN npm install --legacy-peer-deps && \
+    npm install react-scripts@5.0.1 -g && \
+    npm cache clean --force
 
 # Copy source files
 COPY . .
