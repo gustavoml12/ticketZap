@@ -42,9 +42,13 @@ RUN rm -rf /etc/nginx/conf.d/* && \
 
 # Copy custom nginx config
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets to nginx html directory
 COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
+
+# Create config.json with backend settings
+RUN echo '{"BACKEND_PROTOCOL":"http","BACKEND_HOST":"backend","BACKEND_PORT":"3000","BACKEND_PATH":"/backend"}' > /usr/share/nginx/html/config.json
 
 # Create app directories and set permissions
 RUN mkdir -p /usr/src/app/uploads \
