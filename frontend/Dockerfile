@@ -6,53 +6,39 @@ ENV DISABLE_ESLINT_PLUGIN=true
 ENV GENERATE_SOURCEMAP=false
 ENV CI=false
 
-# Add build dependencies
-RUN apk add --no-cache python3 make g++
-
 WORKDIR /usr/src/app
 
-# Copy only package files first
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies with minimal resource usage
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --prefer-offline --no-audit --production=false \
-    && npm cache clean --force
+# Tenta primeiro com npm install normal
+RUN npm install --prefer-offline --no-audit || \
+    # Se falhar, tenta com --legacy-peer-deps
+    npm install --prefer-offline --no-audit --legacy-peer-deps || \
+    # Se ainda falhar, remove o lock e tenta novamente
+    (rm -f package-lock.json && npm install --no-audit --legacy-peer-deps)
 
-# Copy only necessary files
+# Copy source files
 COPY . .
 
-# Build with minimal memory usage
-RUN npm run build:prod
+# Build with reduced memory usage
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
 # Production environment
-FROM ghcr.io/ticketz-oss/nginx-alpine:latest
+FROM nginx:stable-alpine
 
-WORKDIR /var/www/public
+# Copy custom nginx config
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets
-COPY --from=build-deps /usr/src/app/build/ .
-COPY --from=build-deps /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist ./socket-admin
+COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
 
-# Copy nginx configuration
-COPY nginx /etc/nginx
+# Set permissions
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
 
-# Create necessary directories and files
-RUN mkdir -p public-settings/vector && \
-    mkdir -p settings && \
-    echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff","icons":[{"src":"/vector/favicon.ico","sizes":"64x64 32x32 24x24 16x16","type":"image/x-icon"}]}' > manifest.json && \
-    echo '{"value":"#2196f3"}' > public-settings/primaryColorLight.json && \
-    echo '{"value":""}' > public-settings/appLogoLight.json && \
-    echo '{"value":"light"}' > public-settings/theme.json && \
-    echo '{"BACKEND_PROTOCOL":"http","BACKEND_HOST":"backend","BACKEND_PORT":"3000","BACKEND_PATH":""}' > config.json && \
-    echo '{"value":"#2196f3"}' > settings/primaryColorLight.json && \
-    echo '{"value":""}' > settings/appLogoLight.json && \
-    echo '{"value":"light"}' > settings/theme.json && \
-    touch public-settings/vector/favicon.ico
+USER nginx
 
-# Set proper permissions
-RUN chown -R nginx:nginx /var/www/public && \
-    chmod -R 755 /var/www/public
+EXPOSE 80
 
-ENTRYPOINT ["dumb-init", "--"]
 CMD ["nginx", "-g", "daemon off;"]
