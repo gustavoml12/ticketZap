@@ -5,10 +5,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    ports:
+      - "62467:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
-      - REDIS_URL=redis://default:rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY@hsscggc48w4oo8c84o8ww4ck:6379/0
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
       - JWT_SECRET=${JWT_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -35,12 +37,10 @@ services:
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_ALGORITHM=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_ALGORITHM}
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER}
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER_VALUE=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER_VALUE}
-      - PORT=3000
       - UPLOAD_DIR=/usr/src/app/uploads
       - PUBLIC_DIR=/usr/src/app/public
       - PRIVATE_DIR=/usr/src/app/private
-    ports:
-      - "53467:3000"
+      - PORT=3000
     volumes:
       - type: bind
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
@@ -66,10 +66,10 @@ services:
       args:
         NODE_ENV: production
     ports:
-      - "56467:8080"
+      - "66467:8080"
     environment:
-      NODE_ENV: production
-      BACKEND_URL: http://backend:53467
+      - NODE_ENV=production
+      - BACKEND_URL=http://backend:3000
     volumes:
       - type: bind
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
