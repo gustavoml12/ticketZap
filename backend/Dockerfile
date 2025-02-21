@@ -23,7 +23,7 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-RUN apk add --no-cache wget curl postgresql-client && \
+RUN apk add --no-cache wget curl postgresql-client redis && \
     npm install -g pm2
 
 # Criar usuário não-root

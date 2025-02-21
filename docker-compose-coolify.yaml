@@ -14,11 +14,7 @@ services:
       - DB_NAME=postgres
       - DB_USER=postgres
       - DB_PASS=iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP
-      - REDIS_HOST=hsscggc48w4oo8c84o8ww4ck
-      - REDIS_PORT=6379
-      - REDIS_DB=0
-      - REDIS_USERNAME=default
-      - REDIS_PASSWORD=rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY
+      - REDIS_URI=redis://default:rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY@hsscggc48w4oo8c84o8ww4ck:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
