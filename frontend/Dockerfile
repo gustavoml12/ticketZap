@@ -33,29 +33,21 @@ COPY nginx/nginx.conf /etc/nginx/nginx.conf
 # Copy built assets to nginx html directory
 COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
 
-# Create app directories
+# Create app directories and set permissions
 RUN mkdir -p /usr/src/app/uploads \
-    && mkdir -p /usr/src/app/public
+    && mkdir -p /usr/src/app/public \
+    && chown -R nginx:nginx /usr/src/app \
+    && chmod -R 755 /usr/src/app \
+    && chown -R nginx:nginx /usr/share/nginx/html \
+    && chmod -R 755 /usr/share/nginx/html \
+    && chown -R nginx:nginx /var/cache/nginx \
+    && chown -R nginx:nginx /var/log/nginx \
+    && chown -R nginx:nginx /etc/nginx/conf.d \
+    && touch /tmp/nginx.pid \
+    && chown -R nginx:nginx /tmp/nginx.pid
 
-# Create entrypoint script
-RUN echo '#!/bin/sh\n\
-chown -R nginx:nginx /usr/src/app\n\
-chmod -R 755 /usr/src/app\n\
-chown -R nginx:nginx /usr/share/nginx/html\n\
-chmod -R 755 /usr/share/nginx/html\n\
-chown -R nginx:nginx /var/cache/nginx\n\
-chown -R nginx:nginx /var/log/nginx\n\
-chown -R nginx:nginx /etc/nginx/conf.d\n\
-touch /tmp/nginx.pid\n\
-chown -R nginx:nginx /tmp/nginx.pid\n\
-exec nginx -g "daemon off;"\n' > /docker-entrypoint.sh \
-    && chmod +x /docker-entrypoint.sh
-
-# Switch to non-root user
+# Set nginx user as default
 USER nginx
 
-# Expose port
-EXPOSE 8080
-
 # Start nginx
-CMD ["/docker-entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

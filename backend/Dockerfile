@@ -35,7 +35,7 @@ COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/package.json ./package.json
 
-# Criar diretórios para mídia
+# Criar diretórios para mídia e definir permissões
 RUN mkdir -p /usr/src/app/public && \
     mkdir -p /usr/src/app/uploads && \
     mkdir -p /usr/src/app/private && \
@@ -44,16 +44,16 @@ RUN mkdir -p /usr/src/app/public && \
     chmod -R 755 /usr/src/app
 
 # Copiar arquivos públicos do build
-COPY --from=build /usr/src/app/public ./public
+COPY --from=build --chown=appuser:appuser /usr/src/app/public ./public
 
 # Criar arquivo de configuração do PM2
 COPY --chown=appuser:appuser <<EOF /usr/src/app/ecosystem.config.js
 module.exports = {
   apps: [{
-    name: 'ticketz-backend',
-    script: 'dist/server.js',
+    name: 'backend',
+    script: './dist/main.js',
     instances: 1,
-    autorestart: true,
+    exec_mode: 'fork',
     watch: false,
     max_memory_restart: '1G',
     env: {
@@ -63,24 +63,8 @@ module.exports = {
 }
 EOF
 
-# Criar script de entrypoint
-COPY --chown=appuser:appuser <<EOF /usr/src/app/docker-entrypoint.sh
-#!/bin/sh
-set -e
-
-# Garantir permissões corretas para os diretórios
-chown -R appuser:appuser /usr/src/app
-chmod -R 755 /usr/src/app
-
-# Executar como usuário appuser usando gosu
-exec su-exec appuser pm2-runtime start ecosystem.config.js
-EOF
-
-RUN chmod +x /usr/src/app/docker-entrypoint.sh && \
-    apk add --no-cache su-exec
-
+# Mudar para o usuário não-root
 USER appuser
 
-EXPOSE 3000
-
-ENTRYPOINT ["/usr/src/app/docker-entrypoint.sh"]
+# Iniciar a aplicação
+CMD ["pm2-runtime", "start", "ecosystem.config.js"]
