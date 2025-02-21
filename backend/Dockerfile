@@ -39,18 +39,10 @@ COPY --from=build /usr/src/app/package.json ./package.json
 RUN mkdir -p /usr/src/app/public && \
     mkdir -p /usr/src/app/uploads && \
     mkdir -p /usr/src/app/private && \
-    mkdir -p /usr/src/app/logs && \
-    chown -R appuser:appuser /usr/src/app && \
-    chmod -R 755 /usr/src/app/public && \
-    chmod -R 755 /usr/src/app/uploads && \
-    chmod -R 700 /usr/src/app/private && \
-    chmod -R 755 /usr/src/app/logs
+    mkdir -p /usr/src/app/logs
 
 # Copiar arquivos públicos do build
 COPY --from=build /usr/src/app/public ./public
-RUN chown -R appuser:appuser /usr/src/app/public
-
-USER appuser
 
 # Criar arquivo de configuração do PM2
 COPY --chown=appuser:appuser <<EOF /usr/src/app/ecosystem.config.js
@@ -83,6 +75,7 @@ mkdir -p /usr/src/app/private
 mkdir -p /usr/src/app/logs
 
 # Ajustar permissões
+chown -R appuser:appuser /usr/src/app
 chmod -R 755 /usr/src/app/public
 chmod -R 755 /usr/src/app/uploads
 chmod -R 700 /usr/src/app/private
@@ -93,5 +86,7 @@ exec pm2-runtime start ecosystem.config.js --env production
 EOF
 
 RUN chmod +x /usr/src/app/docker-entrypoint.sh
+
+USER appuser
 
 ENTRYPOINT ["/usr/src/app/docker-entrypoint.sh"]

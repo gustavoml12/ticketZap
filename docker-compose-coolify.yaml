@@ -42,9 +42,15 @@ services:
     ports:
       - "52467:3000"
     volumes:
-      - media_storage:/usr/src/app/uploads
-      - system_media:/usr/src/app/public
-      - private_files:/usr/src/app/private
+      - type: bind
+        source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
+        target: /usr/src/app/uploads
+      - type: bind
+        source: ${SYSTEM_MEDIA_PATH:-/var/lib/coolify/system_media}
+        target: /usr/src/app/public
+      - type: bind
+        source: ${PRIVATE_FILES_PATH:-/var/lib/coolify/private_files}
+        target: /usr/src/app/private
     restart: unless-stopped
     deploy:
       resources:
@@ -65,8 +71,14 @@ services:
       NODE_ENV: production
       BACKEND_URL: http://backend:52467
     volumes:
-      - media_storage:/usr/src/app/uploads:ro
-      - system_media:/usr/src/app/public:ro
+      - type: bind
+        source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
+        target: /usr/src/app/uploads
+        read_only: true
+      - type: bind
+        source: ${SYSTEM_MEDIA_PATH:-/var/lib/coolify/system_media}
+        target: /usr/src/app/public
+        read_only: true
     restart: unless-stopped
     deploy:
       resources:
