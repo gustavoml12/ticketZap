@@ -40,7 +40,7 @@ services:
       - PUBLIC_DIR=/usr/src/app/public
       - PRIVATE_DIR=/usr/src/app/private
     ports:
-      - "3000:3000"
+      - "52467:3000"
     volumes:
       - media_storage:/usr/src/app/uploads
       - system_media:/usr/src/app/public
@@ -60,10 +60,10 @@ services:
       args:
         NODE_ENV: production
     ports:
-      - "8081:8080"
+      - "56467:8080"
     environment:
       NODE_ENV: production
-      BACKEND_URL: http://backend:3000
+      BACKEND_URL: http://backend:52467
     volumes:
       - media_storage:/usr/src/app/uploads:ro
       - system_media:/usr/src/app/public:ro
