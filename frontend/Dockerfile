@@ -1,54 +1,41 @@
+# Build stage
 FROM node:20-alpine as build-deps
 
-# Set build arguments
-ARG NODE_ENV
-ARG DISABLE_ESLINT_PLUGIN
-ARG GENERATE_SOURCEMAP
-ARG CI
-ARG NODE_OPTIONS
-
-# Set environment variables from build args
-ENV NODE_ENV=$NODE_ENV
-ENV DISABLE_ESLINT_PLUGIN=$DISABLE_ESLINT_PLUGIN
-ENV GENERATE_SOURCEMAP=$GENERATE_SOURCEMAP
-ENV CI=$CI
-ENV NODE_OPTIONS=$NODE_OPTIONS
-ENV PATH /usr/src/app/node_modules/.bin:$PATH
-
+# Set working directory
 WORKDIR /usr/src/app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with cache
+# Install dependencies using cache mount
 RUN --mount=type=cache,target=/root/.npm \
-    npm install --legacy-peer-deps && \
-    npm install ajv@8.12.0 && \
-    npm install react-scripts@5.0.1 -g && \
-    npm cache clean --force
+    npm install
 
-# Copy source files
+# Copy source code
 COPY . .
 
-# Build with optimizations
+# Set build arguments
+ARG NODE_ENV=production
+ARG DISABLE_ESLINT_PLUGIN=true
+ARG GENERATE_SOURCEMAP=false
+ARG CI=false
+ARG NODE_OPTIONS=--max-old-space-size=2048
+
+# Build application
 RUN npm run build
 
-# Production environment
+# Production stage
 FROM nginx:stable-alpine
 
-# Remove default nginx config
+# Remove default nginx configs
 RUN rm -rf /etc/nginx/conf.d/* && \
     rm -rf /etc/nginx/nginx.conf
 
 # Copy custom nginx config
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
-COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets to nginx html directory
 COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
-
-# Create config.json with backend settings
-RUN echo '{"BACKEND_PROTOCOL":"http","BACKEND_HOST":"backend","BACKEND_PORT":"3000","BACKEND_PATH":"/backend"}' > /usr/share/nginx/html/config.json
 
 # Create app directories and set permissions
 RUN mkdir -p /usr/src/app/uploads \
@@ -63,8 +50,11 @@ RUN mkdir -p /usr/src/app/uploads \
     && touch /tmp/nginx.pid \
     && chown -R nginx:nginx /tmp/nginx.pid
 
-# Set nginx user as default
+# Switch to non-root user
 USER nginx
+
+# Expose port
+EXPOSE 8080
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
