@@ -5,7 +5,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    restart: unless-stopped
     environment:
       - NODE_ENV=production
       - REDIS_HOST=redis
@@ -37,25 +36,20 @@ services:
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_ALGORITHM=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_ALGORITHM}
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER}
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER_VALUE=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER_VALUE}
-    volumes:
-      - backend_data:/app/public
-    depends_on:
-      - redis
+      - PORT=3000
     ports:
-      - "3000"
+      - "3000:3000"
     networks:
       - coolify
+    depends_on:
+      - redis
+    restart: unless-stopped
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
         reservations:
-          memory: 256M
-      restart_policy:
-        condition: on-failure
-        delay: 30s
-        max_attempts: 5
-        window: 180s
+          memory: 512M
 
   frontend:
     build:
@@ -65,42 +59,43 @@ services:
         - NODE_ENV=production
       labels:
         - "com.docker.compose.memory=256M"
-    restart: unless-stopped
     environment:
       - NODE_ENV=production
       - BACKEND_URL=http://backend:3000
     volumes:
       - backend_data:/var/www/backend-public:ro
-    depends_on:
-      - backend
     ports:
-      - "80:80"
+      - "8080:80"
     networks:
       - coolify
+    depends_on:
+      - backend
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    networks:
+      - coolify
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
     deploy:
       resources:
         limits:
           memory: 256M
-          cpus: '0.5'
         reservations:
           memory: 128M
-          cpus: '0.25'
-      restart_policy:
-        condition: on-failure
-        delay: 30s
-        max_attempts: 3
-        window: 120s
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
 
 networks:
   coolify:
-    external: true
+    driver: bridge
 
 volumes:
   backend_data:
