@@ -7,9 +7,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
+      - REDIS_URL=redis://default:rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY@hsscggc48w4oo8c84o8ww4ck:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -37,12 +36,13 @@ services:
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER}
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER_VALUE=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER_VALUE}
       - PORT=3000
+      - UPLOAD_DIR=/app/uploads
+      - PUBLIC_DIR=/app/public
     ports:
       - "3000:3000"
-    networks:
-      - coolify
-    depends_on:
-      - redis
+    volumes:
+      - media_storage:/app/uploads
+      - system_media:/app/public
     restart: unless-stopped
     deploy:
       resources:
@@ -57,19 +57,14 @@ services:
       dockerfile: Dockerfile
       args:
         - NODE_ENV=production
-      labels:
-        - "com.docker.compose.memory=256M"
     environment:
       - NODE_ENV=production
       - BACKEND_URL=http://backend:3000
-    volumes:
-      - backend_data:/var/www/backend-public:ro
     ports:
-      - "8080:80"
-    networks:
-      - coolify
-    depends_on:
-      - backend
+      - "8081:80"
+    volumes:
+      - media_storage:/usr/share/nginx/html/uploads:ro
+      - system_media:/usr/share/nginx/html/public:ro
     restart: unless-stopped
     deploy:
       resources:
@@ -78,21 +73,6 @@ services:
         reservations:
           memory: 512M
 
-  redis:
-    image: redis:7-alpine
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    networks:
-      - coolify
-    restart: unless-stopped
-    volumes:
-      - redis_data:/data
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-
 networks:
   coolify:
     driver: bridge
@@ -100,3 +80,7 @@ networks:
 volumes:
   backend_data:
   redis_data:
+  media_storage:
+    name: ${COOLIFY_VOLUME_MEDIA:-media_storage}
+  system_media:
+    name: ${COOLIFY_VOLUME_SYSTEM:-system_media}

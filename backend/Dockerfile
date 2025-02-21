@@ -30,10 +30,18 @@ RUN apk add --no-cache wget curl postgresql-client && \
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/package.json ./package.json
-COPY --from=build /usr/src/app/public ./public
 
-RUN mkdir -p /usr/src/app/private && \
-    chown -R node:node /usr/src/app
+# Criar diretórios para mídia
+RUN mkdir -p /usr/src/app/public && \
+    mkdir -p /usr/src/app/uploads && \
+    mkdir -p /usr/src/app/logs && \
+    chown -R node:node /usr/src/app && \
+    chmod -R 755 /usr/src/app/public && \
+    chmod -R 755 /usr/src/app/uploads && \
+    chmod -R 755 /usr/src/app/logs
+
+# Copiar arquivos públicos do build
+COPY --from=build /usr/src/app/public ./public
 
 USER node
 
@@ -49,35 +57,32 @@ module.exports = {
     env: {
       NODE_ENV: 'production'
     },
-    error_file: '/usr/src/app/logs/err.log',
-    out_file: '/usr/src/app/logs/out.log',
-    log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-    merge_logs: true,
-    max_restarts: 5,
-    min_uptime: '30s'
+    env_production: {
+      NODE_ENV: 'production'
+    }
   }]
 }
 EOF
 
-# Criar diretório de logs
-RUN mkdir -p /usr/src/app/logs
-
+# Criar arquivo de entrypoint
 COPY --chown=node:node <<EOF /usr/src/app/docker-entrypoint.sh
 #!/bin/sh
 set -e
 
-# Aguardar o PostgreSQL
-until pg_isready -h "\${DB_HOST}" -p "\${DB_PORT}" -U "\${DB_USER}"; do
-  echo "Aguardando PostgreSQL..."
-  sleep 2
-done
+# Criar diretórios necessários caso não existam
+mkdir -p /usr/src/app/public
+mkdir -p /usr/src/app/uploads
+mkdir -p /usr/src/app/logs
 
-# Iniciar a aplicação com PM2
-exec pm2-runtime start ecosystem.config.js
+# Ajustar permissões
+chmod -R 755 /usr/src/app/public
+chmod -R 755 /usr/src/app/uploads
+chmod -R 755 /usr/src/app/logs
+
+# Iniciar a aplicação
+exec pm2-runtime start ecosystem.config.js --env production
 EOF
 
 RUN chmod +x /usr/src/app/docker-entrypoint.sh
-
-EXPOSE 3000
 
 ENTRYPOINT ["/usr/src/app/docker-entrypoint.sh"]

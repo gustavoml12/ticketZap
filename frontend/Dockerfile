@@ -33,8 +33,10 @@ COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built assets
 COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
 
-# Set permissions
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
+# Create directories for media
+RUN mkdir -p /usr/share/nginx/html/uploads && \
+    mkdir -p /usr/share/nginx/html/public && \
+    chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
 USER nginx
