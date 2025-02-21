@@ -28,14 +28,16 @@ RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 FROM nginx:stable-alpine
 
 # Copy custom nginx config
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Copy built assets
+# Copy built assets to nginx html directory
 COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
 
-# Create directories for media with correct permissions
-RUN mkdir -p /usr/share/nginx/html/uploads \
-    && mkdir -p /usr/share/nginx/html/public \
+# Create app directories
+RUN mkdir -p /usr/src/app/uploads \
+    && mkdir -p /usr/src/app/public \
+    && chown -R nginx:nginx /usr/src/app \
+    && chmod -R 755 /usr/src/app \
     && chown -R nginx:nginx /usr/share/nginx/html \
     && chmod -R 755 /usr/share/nginx/html \
     && chown -R nginx:nginx /var/cache/nginx \

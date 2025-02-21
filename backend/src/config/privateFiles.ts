@@ -1,7 +1,7 @@
 import path from "path";
 import multer from "multer";
 
-const privateFolder = process.env.PRIVATE_DIR || path.resolve(__dirname, "..", "..", "private");
+const privateFolder = process.env.PRIVATE_DIR || path.resolve("/usr/src/app", "private");
 
 export default {
   privateDirectory: privateFolder,

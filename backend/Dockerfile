@@ -26,6 +26,10 @@ WORKDIR /usr/src/app
 RUN apk add --no-cache wget curl postgresql-client && \
     npm install -g pm2
 
+# Criar usuário não-root
+RUN addgroup -g 1001 -S appuser && \
+    adduser -u 1001 -S appuser -G appuser
+
 # Copiar apenas os arquivos necessários
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
@@ -36,7 +40,7 @@ RUN mkdir -p /usr/src/app/public && \
     mkdir -p /usr/src/app/uploads && \
     mkdir -p /usr/src/app/private && \
     mkdir -p /usr/src/app/logs && \
-    chown -R node:node /usr/src/app && \
+    chown -R appuser:appuser /usr/src/app && \
     chmod -R 755 /usr/src/app/public && \
     chmod -R 755 /usr/src/app/uploads && \
     chmod -R 700 /usr/src/app/private && \
@@ -44,11 +48,12 @@ RUN mkdir -p /usr/src/app/public && \
 
 # Copiar arquivos públicos do build
 COPY --from=build /usr/src/app/public ./public
+RUN chown -R appuser:appuser /usr/src/app/public
 
-USER node
+USER appuser
 
 # Criar arquivo de configuração do PM2
-COPY --chown=node:node <<EOF /usr/src/app/ecosystem.config.js
+COPY --chown=appuser:appuser <<EOF /usr/src/app/ecosystem.config.js
 module.exports = {
   apps: [{
     name: 'ticketz-backend',
@@ -67,7 +72,7 @@ module.exports = {
 EOF
 
 # Criar arquivo de entrypoint
-COPY --chown=node:node <<EOF /usr/src/app/docker-entrypoint.sh
+COPY --chown=appuser:appuser <<EOF /usr/src/app/docker-entrypoint.sh
 #!/bin/sh
 set -e
 

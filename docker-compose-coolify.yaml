@@ -36,15 +36,15 @@ services:
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER}
       - WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER_VALUE=${WHATSAPP_WEBHOOK_VERIFY_SIGNATURE_HEADER_VALUE}
       - PORT=3000
-      - UPLOAD_DIR=/app/uploads
-      - PUBLIC_DIR=/app/public
-      - PRIVATE_DIR=/app/private
+      - UPLOAD_DIR=/usr/src/app/uploads
+      - PUBLIC_DIR=/usr/src/app/public
+      - PRIVATE_DIR=/usr/src/app/private
     ports:
       - "3000:3000"
     volumes:
-      - media_storage:/app/uploads
-      - system_media:/app/public
-      - private_files:/app/private
+      - media_storage:/usr/src/app/uploads
+      - system_media:/usr/src/app/public
+      - private_files:/usr/src/app/private
     restart: unless-stopped
     deploy:
       resources:
@@ -65,8 +65,8 @@ services:
       NODE_ENV: production
       BACKEND_URL: http://backend:3000
     volumes:
-      - media_storage:/usr/share/nginx/html/uploads:ro
-      - system_media:/usr/share/nginx/html/public:ro
+      - media_storage:/usr/src/app/uploads:ro
+      - system_media:/usr/src/app/public:ro
     restart: unless-stopped
     deploy:
       resources:
@@ -77,14 +77,24 @@ services:
 
 networks:
   coolify:
-    driver: bridge
+    external: true
 
 volumes:
-  backend_data:
-  redis_data:
   media_storage:
-    name: ${COOLIFY_VOLUME_MEDIA:-media_storage}
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
   system_media:
-    name: ${COOLIFY_VOLUME_SYSTEM:-system_media}
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${SYSTEM_MEDIA_PATH:-/var/lib/coolify/system_media}
   private_files:
-    name: private_files
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PRIVATE_FILES_PATH:-/var/lib/coolify/private_files}

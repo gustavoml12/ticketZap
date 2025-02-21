@@ -1,8 +1,8 @@
 import path from "path";
 import multer from "multer";
 
-const uploadsFolder = process.env.UPLOAD_DIR || path.resolve(__dirname, "..", "..", "uploads");
-const publicFolder = process.env.PUBLIC_DIR || path.resolve(__dirname, "..", "..", "public");
+const uploadsFolder = process.env.UPLOAD_DIR || path.resolve("/usr/src/app", "uploads");
+const publicFolder = process.env.PUBLIC_DIR || path.resolve("/usr/src/app", "public");
 
 export default {
   uploadsDirectory: uploadsFolder,
