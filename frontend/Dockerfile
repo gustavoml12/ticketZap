@@ -1,19 +1,28 @@
 FROM node:20-alpine as build-deps
 
-# Set environment variables for better performance
-ENV NODE_ENV=production
+# Set build arguments
+ARG NODE_ENV
+ARG DISABLE_ESLINT_PLUGIN
+ARG GENERATE_SOURCEMAP
+ARG CI
+ARG NODE_OPTIONS
+
+# Set environment variables from build args
+ENV NODE_ENV=$NODE_ENV
+ENV DISABLE_ESLINT_PLUGIN=$DISABLE_ESLINT_PLUGIN
+ENV GENERATE_SOURCEMAP=$GENERATE_SOURCEMAP
+ENV CI=$CI
+ENV NODE_OPTIONS=$NODE_OPTIONS
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
-ENV DISABLE_ESLINT_PLUGIN=true
-ENV GENERATE_SOURCEMAP=false
-ENV CI=false
 
 WORKDIR /usr/src/app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with specific ajv version
-RUN npm install --legacy-peer-deps && \
+# Install dependencies with cache
+RUN --mount=type=cache,target=/root/.npm \
+    npm install --legacy-peer-deps && \
     npm install ajv@8.12.0 && \
     npm install react-scripts@5.0.1 -g && \
     npm cache clean --force
@@ -21,8 +30,8 @@ RUN npm install --legacy-peer-deps && \
 # Copy source files
 COPY . .
 
-# Build with reduced memory usage
-RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
+# Build with optimizations
+RUN npm run build
 
 # Production environment
 FROM nginx:stable-alpine

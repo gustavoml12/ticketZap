@@ -6,7 +6,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "62467:3000"
+      - "32467:3000"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
@@ -65,8 +65,12 @@ services:
       dockerfile: Dockerfile
       args:
         NODE_ENV: production
+        DISABLE_ESLINT_PLUGIN: "true"
+        GENERATE_SOURCEMAP: "false"
+        CI: "false"
+        NODE_OPTIONS: "--max-old-space-size=2048"
     ports:
-      - "65467:8080"
+      - "35467:8080"
     environment:
       - NODE_ENV=production
       - BACKEND_URL=http://backend:3000
