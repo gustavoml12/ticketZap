@@ -64,11 +64,13 @@
   "scripts": {
     "start": "react-scripts start",
     "legacy": "react-scripts start",
-    "build": "GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false CI=false NODE_ENV=production react-scripts build",
+    "build:prod": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false CI=false NODE_ENV=production react-scripts build --max-old-space-size=4096",
     "builddev": "react-scripts build",
     "winBuild": "set \"GENERATE_SOURCEMAP=false\" && react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "clean": "rm -rf build node_modules/.cache"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -86,6 +88,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@socket.io/admin-ui": "^0.5.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.0.4",

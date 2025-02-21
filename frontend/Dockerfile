@@ -1,26 +1,36 @@
 FROM node:20-alpine as build-deps
 
+# Set environment variables for better performance
+ENV NODE_ENV=production
+ENV DISABLE_ESLINT_PLUGIN=true
+ENV GENERATE_SOURCEMAP=false
+ENV CI=false
+
+# Add build dependencies
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /usr/src/app
 
-# Copy package files first for better caching
+# Copy only package files first
 COPY package*.json ./
 
-# Install all dependencies including dev dependencies for build
+# Install dependencies with minimal resource usage
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+    npm ci --prefer-offline --no-audit --production=false \
+    && npm cache clean --force
 
-# Copy the rest of the application
+# Copy only necessary files
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build with minimal memory usage
+RUN npm run build:prod
 
-# Stage 2: Create the final image
+# Production environment
 FROM ghcr.io/ticketz-oss/nginx-alpine:latest
 
 WORKDIR /var/www/public
 
-# Copy build files from build stage
+# Copy built assets
 COPY --from=build-deps /usr/src/app/build/ .
 COPY --from=build-deps /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist ./socket-admin
 

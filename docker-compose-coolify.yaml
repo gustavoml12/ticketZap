@@ -61,8 +61,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+      labels:
+        - "com.docker.compose.memory=256M"
     restart: unless-stopped
     environment:
+      - NODE_ENV=production
       - BACKEND_URL=http://backend:3000
     volumes:
       - backend_data:/var/www/backend-public:ro
@@ -76,8 +81,10 @@ services:
       resources:
         limits:
           memory: 256M
+          cpus: '0.5'
         reservations:
           memory: 128M
+          cpus: '0.25'
       restart_policy:
         condition: on-failure
         delay: 30s
