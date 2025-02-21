@@ -40,7 +40,7 @@ services:
       - PUBLIC_DIR=/usr/src/app/public
       - PRIVATE_DIR=/usr/src/app/private
     ports:
-      - "52467:3000"
+      - "53467:3000"
     volumes:
       - type: bind
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
@@ -69,7 +69,7 @@ services:
       - "56467:8080"
     environment:
       NODE_ENV: production
-      BACKEND_URL: http://backend:52467
+      BACKEND_URL: http://backend:53467
     volumes:
       - type: bind
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
