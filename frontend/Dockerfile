@@ -1,7 +1,7 @@
 FROM node:20-alpine as build-deps
 
 # Set environment variables for better performance
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
 ENV DISABLE_ESLINT_PLUGIN=true
 ENV GENERATE_SOURCEMAP=false
@@ -12,8 +12,9 @@ WORKDIR /usr/src/app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies including react-scripts
+# Install dependencies with specific ajv version
 RUN npm install --legacy-peer-deps && \
+    npm install ajv@8.12.0 && \
     npm install react-scripts@5.0.1 -g && \
     npm cache clean --force
 
