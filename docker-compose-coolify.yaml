@@ -9,8 +9,16 @@ services:
       - "31467:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
-      - REDIS_URL=redis://default:rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY@hsscggc48w4oo8c84o8ww4ck:6379/0
+      - DB_HOST=twkw00kcwco0skoss80000c4
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASS=iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP
+      - REDIS_HOST=hsscggc48w4oo8c84o8ww4ck
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_USERNAME=default
+      - REDIS_PASSWORD=rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY
       - JWT_SECRET=${JWT_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
