@@ -70,20 +70,22 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NODE_ENV: production
-        DISABLE_ESLINT_PLUGIN: "true"
-        GENERATE_SOURCEMAP: "false"
-        CI: "false"
-        NODE_OPTIONS: "--max-old-space-size=2048"
+        - REACT_APP_BACKEND_URL=https://ticket.ebnez.com.br/backend
+        - NODE_ENV=production
+        - DISABLE_ESLINT_PLUGIN: "true"
+        - GENERATE_SOURCEMAP: "false"
+        - CI: "false"
+        - NODE_OPTIONS: "--max-old-space-size=2048"
     ports:
       - "34467:8080"
     environment:
       - NODE_ENV=production
+      - REACT_APP_BACKEND_URL=https://ticket.ebnez.com.br/backend
       - BACKEND_URL=http://backend:3000
       - BACKEND_PATH=/backend
-      - BACKEND_PROTOCOL=http
-      - BACKEND_HOST=backend
-      - BACKEND_PORT=3000
+      - BACKEND_PROTOCOL=https
+      - BACKEND_HOST=ticket.ebnez.com.br
+      - BACKEND_PORT=443
     volumes:
       - type: bind
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
