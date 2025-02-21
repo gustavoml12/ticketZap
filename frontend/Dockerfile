@@ -27,20 +27,32 @@ RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 # Production environment
 FROM nginx:stable-alpine
 
+# Create nginx user and group with specific IDs
+RUN addgroup -g 101 -S nginx \
+    && adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
+
 # Copy custom nginx config
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets
 COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
 
-# Create directories for media
-RUN mkdir -p /usr/share/nginx/html/uploads && \
-    mkdir -p /usr/share/nginx/html/public && \
-    chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+# Create directories for media with correct permissions
+RUN mkdir -p /usr/share/nginx/html/uploads \
+    && mkdir -p /usr/share/nginx/html/public \
+    && chown -R nginx:nginx /usr/share/nginx/html \
+    && chmod -R 755 /usr/share/nginx/html \
+    && chown -R nginx:nginx /var/cache/nginx \
+    && chown -R nginx:nginx /var/log/nginx \
+    && chown -R nginx:nginx /etc/nginx/conf.d \
+    && touch /var/run/nginx.pid \
+    && chown -R nginx:nginx /var/run/nginx.pid
 
+# Switch to non-root user
 USER nginx
 
-EXPOSE 80
+# Expose port
+EXPOSE 8080
 
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
