@@ -51,7 +51,7 @@ COPY --chown=appuser:appuser <<EOF /usr/src/app/ecosystem.config.js
 module.exports = {
   apps: [{
     name: 'backend',
-    script: './dist/main.js',
+    script: './dist/server.js',
     instances: 1,
     exec_mode: 'fork',
     watch: false,

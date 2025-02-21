@@ -27,6 +27,10 @@ RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 # Production environment
 FROM nginx:stable-alpine
 
+# Remove default nginx config
+RUN rm -rf /etc/nginx/conf.d/* && \
+    rm -rf /etc/nginx/nginx.conf
+
 # Copy custom nginx config
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
@@ -42,7 +46,7 @@ RUN mkdir -p /usr/src/app/uploads \
     && chmod -R 755 /usr/share/nginx/html \
     && chown -R nginx:nginx /var/cache/nginx \
     && chown -R nginx:nginx /var/log/nginx \
-    && chown -R nginx:nginx /etc/nginx/conf.d \
+    && chown -R nginx:nginx /etc/nginx \
     && touch /tmp/nginx.pid \
     && chown -R nginx:nginx /tmp/nginx.pid
 
