@@ -1,6 +1,21 @@
 version: '3.8'
 
 services:
+  portcheck:
+    image: alpine
+    command: |
+      /bin/sh -c '
+      for port in 31467 34467; do
+        container_id=$$(docker ps -q --filter "publish=$$port")
+        if [ ! -z "$$container_id" ]; then
+          echo "Encontrado container usando porta $$port. Removendo..."
+          docker rm -f $$container_id
+        fi
+      done
+      '
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
   backend:
     build:
       context: ./backend
@@ -50,20 +65,16 @@ services:
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
         target: /usr/src/app/uploads
       - type: bind
-        source: ${SYSTEM_MEDIA_PATH:-/var/lib/coolify/system_media}
+        source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
         target: /usr/src/app/public
       - type: bind
-        source: ${PRIVATE_FILES_PATH:-/var/lib/coolify/private_files}
+        source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
         target: /usr/src/app/private
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 512M
-    networks:
-      - coolify
+      - type: bind
+        source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
+        target: /usr/src/app/logs
+    depends_on:
+      - portcheck
 
   frontend:
     build:
@@ -84,20 +95,9 @@ services:
       - type: bind
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
         target: /usr/src/app/uploads
-        read_only: true
       - type: bind
-        source: ${SYSTEM_MEDIA_PATH:-/var/lib/coolify/system_media}
+        source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
         target: /usr/src/app/public
-        read_only: true
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 1GB
-        reservations:
-          memory: 512MB
-    networks:
-      - coolify
 
 networks:
   coolify:
@@ -110,15 +110,3 @@ volumes:
       type: none
       o: bind
       device: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
-  system_media:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${SYSTEM_MEDIA_PATH:-/var/lib/coolify/system_media}
-  private_files:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${PRIVATE_FILES_PATH:-/var/lib/coolify/private_files}
