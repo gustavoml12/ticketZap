@@ -78,9 +78,6 @@ services:
         NODE_OPTIONS: "--max-old-space-size=2048"
     ports:
       - "34467:8080"
-    environment:
-      - NODE_ENV=production
-      - REACT_APP_BACKEND_URL=/backend
     depends_on:
       - backend
     volumes:

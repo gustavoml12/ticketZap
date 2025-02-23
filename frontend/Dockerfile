@@ -30,6 +30,9 @@ ENV GENERATE_SOURCEMAP=$GENERATE_SOURCEMAP
 ENV CI=$CI
 ENV NODE_OPTIONS=$NODE_OPTIONS
 
+# Create config.json
+RUN echo '{"REACT_APP_BACKEND_URL":"'${REACT_APP_BACKEND_URL}'"}' > public/config.json
+
 # Build application
 RUN npm run build
 
