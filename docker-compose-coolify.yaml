@@ -1,17 +1,6 @@
 version: '3.8'
 
 services:
-  portcheck:
-    image: alpine
-    command: |
-      /bin/sh -c '
-      echo "Portcheck service completed successfully"
-      '
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    network_mode: "host"
-    privileged: true
-
   backend:
     build:
       context: ./backend
@@ -74,9 +63,6 @@ services:
         failure_action: rollback
       restart_policy:
         condition: any
-    depends_on:
-      portcheck:
-        condition: service_completed_successfully
 
   frontend:
     build:
