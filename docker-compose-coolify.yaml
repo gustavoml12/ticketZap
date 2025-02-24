@@ -5,16 +5,12 @@ services:
     image: alpine
     command: |
       /bin/sh -c '
-      for port in 31467 34467; do
-        container_id=$$(docker ps -q --filter "publish=$$port")
-        if [ ! -z "$$container_id" ]; then
-          echo "Encontrado container usando porta $$port. Removendo..."
-          docker rm -f $$container_id
-        fi
-      done
+      echo "Portcheck service completed successfully"
       '
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: "host"
+    privileged: true
 
   backend:
     build:
@@ -71,8 +67,16 @@ services:
         target: /usr/src/app/logs
     networks:
       - coolify
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+      restart_policy:
+        condition: any
     depends_on:
-      - portcheck
+      portcheck:
+        condition: service_completed_successfully
 
   frontend:
     build:
@@ -89,6 +93,13 @@ services:
       - "34467:8080"
     networks:
       - coolify
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+      restart_policy:
+        condition: any
     depends_on:
       - backend
     volumes:
