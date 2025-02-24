@@ -24,11 +24,7 @@ services:
       - "31467:3000"
     environment:
       - NODE_ENV=production
-      - DB_HOST=twkw00kcwco0skoss80000c4
-      - DB_PORT=5432
-      - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASS=iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP
+      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
       - REDIS_URI=redis://default:rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY@hsscggc48w4oo8c84o8ww4ck:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
@@ -73,6 +69,8 @@ services:
       - type: bind
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
         target: /usr/src/app/logs
+    networks:
+      - coolify
     depends_on:
       - portcheck
 
@@ -89,6 +87,8 @@ services:
         NODE_OPTIONS: "--max-old-space-size=2048"
     ports:
       - "34467:8080"
+    networks:
+      - coolify
     depends_on:
       - backend
     volumes:
