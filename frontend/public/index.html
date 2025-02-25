@@ -140,7 +140,7 @@
       root.style.setProperty('--primary', themes[theme].primary);
 		}
 
-		const backendUrl = window.location.hostname === "localhost" ? "http://localhost:8080" : "/backend";
+		const backendUrl = window.location.hostname === "localhost" ? "http://localhost:3000" : "/backend";
 		const settingsBaseUrl = backendUrl + "/public-settings";
 		
 		fetch(settingsBaseUrl + "/primaryColor" + (theme === "dark" ? "Dark" : "Light"))
