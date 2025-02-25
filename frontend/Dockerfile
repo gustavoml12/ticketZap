@@ -43,21 +43,21 @@ FROM nginx:stable-alpine
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN rm -rf /etc/nginx/conf.d/default.conf
 
+# Set up permissions
+RUN mkdir -p /var/cache/nginx /var/run /var/log/nginx /tmp \
+    && chmod -R 777 /var/cache/nginx /var/run /var/log/nginx /tmp \
+    && chown -R nginx:nginx /var/cache/nginx /var/run /var/log/nginx /tmp /etc/nginx/nginx.conf
+
 # Copy built assets to nginx html directory
 COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
 
 # Create app directories and set permissions
 RUN mkdir -p /usr/src/app/uploads \
     && mkdir -p /usr/src/app/public \
-    && mkdir -p /var/cache/nginx \
-    && mkdir -p /var/log/nginx \
     && chown -R nginx:nginx /usr/src/app \
     && chmod -R 755 /usr/src/app \
     && chown -R nginx:nginx /usr/share/nginx/html \
     && chmod -R 755 /usr/share/nginx/html \
-    && chown -R nginx:nginx /var/cache/nginx \
-    && chown -R nginx:nginx /var/log/nginx \
-    && chown -R nginx:nginx /etc/nginx/conf.d \
     && touch /tmp/nginx.pid \
     && chown -R nginx:nginx /tmp/nginx.pid
 

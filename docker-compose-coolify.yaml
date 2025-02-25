@@ -93,35 +93,11 @@ services:
       - coolify
     ports:
       - "80"
-    deploy:
-      mode: replicated
-      replicas: 1
-      update_config:
-        order: stop-first
-        failure_action: rollback
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-    stop_grace_period: 30s
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+    user: nginx
     volumes:
       - type: bind
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
         target: /usr/src/app/uploads
-      - type: bind
-        source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
-        target: /usr/src/app/public
 
 networks:
   coolify:
