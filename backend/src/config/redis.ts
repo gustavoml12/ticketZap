@@ -1,38 +1,14 @@
 import Redis from "ioredis";
 
-const redisConfig: any = process.env.REDIS_URI || {
-  host: process.env.REDIS_HOST || "127.0.0.1",
-  port: parseInt(process.env.REDIS_PORT || "6379"),
-  retryStrategy: (times: number) => {
-    console.log(`Redis retry attempt ${times}`);
-    if (times > 20) {
-      console.error("Max Redis retries reached, giving up");
-      return null; // stop retrying
-    }
-    const delay = Math.min(times * 100, 3000);
-    console.log(`Retrying Redis connection in ${delay}ms`);
-    return delay;
-  },
-  maxRetriesPerRequest: 3,
-  showFriendlyErrorStack: true,
-  enableAutoPipelining: true,
-  connectTimeout: 10000,
-  lazyConnect: true,
-  reconnectOnError: (err) => {
-    const targetError = "READONLY";
-    if (err.message.includes(targetError)) {
-      return true;
-    }
-    return false;
-  }
-};
+const redisUrl = process.env.REDIS_URI;
 
-console.log("Attempting Redis connection with config:", typeof redisConfig === 'string' ? 'Using Redis URI' : {
-  host: redisConfig.host,
-  port: redisConfig.port
-});
+if (!redisUrl) {
+  throw new Error("REDIS_URI environment variable is required");
+}
 
-export const redis = new Redis(redisConfig);
+console.log("Attempting Redis connection with URI");
+
+export const redis = new Redis(redisUrl);
 
 redis.on("error", (error) => {
   if (error.message.includes('WRONGPASS')) {
@@ -51,11 +27,7 @@ redis.on("connect", () => {
 });
 
 redis.on("ready", () => {
-  console.log("Redis client is ready to process commands");
-});
-
-redis.on("reconnecting", () => {
-  console.log("Reconnecting to Redis...");
+  console.log("Redis client is ready to accept commands");
 });
 
 export const REDIS_URI_CONNECTION = process.env.REDIS_URI || "";
