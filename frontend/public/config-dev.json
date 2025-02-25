@@ -1,6 +1,6 @@
 {
   "BACKEND_PROTOCOL": "http",
-  "BACKEND_HOST": "localhost",
+  "BACKEND_HOST": "backend",
   "BACKEND_PORT": "3000",
   "BACKEND_URL": "",
   "LOG_LEVEL": "debug"
