@@ -54,6 +54,9 @@ app.get(`${baseUrl}/manifest.json`, (req, res) => {
 app.get(`${baseUrl}/public-settings/:setting`, (req, res) => {
   const { setting } = req.params;
   
+  // Log para debug
+  console.log(`[DEBUG] Recebida requisição para configuração: ${setting}`);
+  
   // Configurações padrão
   const defaultSettings = {
     allowSignup: false,
@@ -62,12 +65,20 @@ app.get(`${baseUrl}/public-settings/:setting`, (req, res) => {
     appName: "TicketZap",
     appLogoDark: "/backend/public/logo-dark.png",
     appLogoLight: "/backend/public/logo-light.png",
-    appLogoFavicon: "/backend/public/favicon.ico"
+    appLogoFavicon: "/backend/public/favicon.ico",
+    primaryColor: "#007AFF",
+    primaryColorDark: "#0A84FF",
+    primaryColorLight: "#007AFF"
   };
+
+  // Log para debug
+  console.log(`[DEBUG] Configuração solicitada: ${setting}`);
+  console.log(`[DEBUG] Valor da configuração: ${defaultSettings[setting]}`);
 
   if (setting in defaultSettings) {
     res.json(defaultSettings[setting]);
   } else {
+    console.log(`[DEBUG] Configuração não encontrada: ${setting}`);
     res.status(404).json({ error: "Setting not found" });
   }
 });
