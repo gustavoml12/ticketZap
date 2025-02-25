@@ -9,7 +9,7 @@ services:
       - "3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@10.0.2.10:5432/postgres
+      - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
       - REDIS_URI=redis://default:rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY@hsscggc48w4oo8c84o8ww4ck:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
@@ -55,6 +55,10 @@ services:
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
         target: /usr/src/app/logs
     networks:
+      - coolify
+    dns:
+      - 127.0.0.11
+    dns_search:
       - coolify
     extra_hosts:
       - "twkw00kcwco0skoss80000c4:10.0.2.10"
