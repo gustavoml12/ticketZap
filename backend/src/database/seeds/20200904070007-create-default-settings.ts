@@ -85,7 +85,49 @@ module.exports = {
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
-
+                        // Configurações públicas
+                        {
+                            key: "primaryColorLight",
+                            value: "#2563eb",
+                            companyId: 1,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        },
+                        {
+                            key: "primaryColorDark",
+                            value: "#3b82f6",
+                            companyId: 1,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        },
+                        {
+                            key: "appLogoLight",
+                            value: "logo-light.png",
+                            companyId: 1,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        },
+                        {
+                            key: "appLogoDark",
+                            value: "logo-dark.png",
+                            companyId: 1,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        },
+                        {
+                            key: "appLogoFavicon",
+                            value: "favicon.ico",
+                            companyId: 1,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        },
+                        {
+                            key: "appName",
+                            value: "TicketZap",
+                            companyId: 1,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        }
                     ],
                     { transaction: t }
                 )
