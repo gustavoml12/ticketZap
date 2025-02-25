@@ -87,6 +87,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - REACT_APP_BACKEND_URL=/api
+    environment:
+      - REACT_APP_BACKEND_URL=/api
     depends_on:
       - backend
     networks:
