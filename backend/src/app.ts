@@ -17,7 +17,6 @@ import { messageQueue, sendScheduledMessages } from "./queues";
 Sentry.init({ dsn: process.env.SENTRY_DSN });
 
 const app = express();
-const baseUrl = process.env.BASE_URL || '/backend';
 
 app.set("queues", {
   messageQueue,
@@ -35,64 +34,49 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(Sentry.Handlers.requestHandler());
 
-// Health check endpoint
-app.get(`${baseUrl}/health`, (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
-
-// Servir arquivos estáticos
-app.use(`${baseUrl}/uploads`, express.static(uploadConfig.uploadsDirectory));
-app.use(`${baseUrl}/public`, express.static(uploadConfig.publicDirectory));
-app.use(baseUrl, express.static(path.resolve(__dirname, "..", "public")));
-
-// Servir manifest.json
-app.get(`${baseUrl}/manifest.json`, (req, res) => {
-  res.sendFile(path.resolve(__dirname, "..", "public", "manifest.json"));
-});
-
-// Servir configurações públicas
-app.get(`${baseUrl}/public-settings/:setting`, (req, res) => {
-  const { setting } = req.params;
-  
-  // Log para debug
-  console.log(`[DEBUG] Recebida requisição para configuração: ${setting}`);
-  
-  // Configurações padrão
-  const defaultSettings = {
-    allowSignup: false,
-    primaryColor: "#007AFF",
-    primaryColorDark: "#0A84FF",
-    primaryColorLight: "#007AFF",
-    appName: "TicketZap",
-    appLogoDark: "/backend/public/logo-dark.png",
-    appLogoLight: "/backend/public/logo-light.png",
-    appLogoFavicon: "/backend/public/favicon.ico"
-  };
-
-  // Log para debug
-  console.log(`[DEBUG] Configuração solicitada: ${setting}`);
-  console.log(`[DEBUG] Valor da configuração: ${defaultSettings[setting]}`);
-
-  if (setting in defaultSettings) {
-    res.json(defaultSettings[setting]);
-  } else {
-    console.log(`[DEBUG] Configuração não encontrada: ${setting}`);
-    res.status(404).json({ error: "Setting not found" });
-  }
-});
-
-// Adicionar o prefixo base às rotas da API
-app.use(baseUrl, routes);
-
-app.use(Sentry.Handlers.errorHandler());
-app.use(async (err: Error, req: Request, res: Response, _: NextFunction) => {
+// Configurar para retornar JSON em vez de HTML para erros
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
-    logger[err.level](err);
+    logger.error(err);
     return res.status(err.statusCode).json({ error: err.message });
   }
 
   logger.error(err);
   return res.status(500).json({ error: "Internal server error" });
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// Servir arquivos estáticos
+app.use("/uploads", express.static(uploadConfig.uploadsDirectory));
+app.use("/public", express.static(uploadConfig.publicDirectory));
+app.use(express.static(path.resolve(__dirname, "..", "public")));
+
+// Servir manifest.json
+app.get("/manifest.json", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "..", "public", "manifest.json"));
+});
+
+// Usar as rotas
+app.use(routes);
+
+// Capturar erros do Sentry
+app.use(Sentry.Handlers.errorHandler());
+
+// Express vai enviar todos os erros como JSON
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+  
+  logger.error(err);
+  return res.status(500).json({ 
+    error: "Internal server error",
+    message: err.message
+  });
 });
 
 export default app;

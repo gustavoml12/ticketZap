@@ -33,13 +33,17 @@ import ticketzOSSRoutes from "./ticketzOSSRoutes";
 
 const routes = Router();
 
-routes.use(userRoutes);
+// Rotas públicas primeiro
+routes.use("/version", versionRoutes);
 routes.use("/auth", authRoutes);
+routes.use("/public-settings", settingRoutes);
+
+// Depois as rotas privadas
+routes.use(userRoutes);
 routes.use(settingRoutes);
 routes.use(contactRoutes);
 routes.use(ticketRoutes);
 routes.use(whatsappRoutes);
-routes.use(messageRoutes);
 routes.use(messageRoutes);
 routes.use(whatsappSessionRoutes);
 routes.use(queueRoutes);
@@ -58,11 +62,10 @@ routes.use(campaignRoutes);
 routes.use(campaignSettingRoutes);
 routes.use(announcementRoutes);
 routes.use(chatRoutes);
-routes.use(subscriptionRoutes);
 routes.use(invoiceRoutes);
+routes.use(subscriptionRoutes);
 routes.use(ticketTagRoutes);
 routes.use(pwaRoutes);
-routes.use(versionRoutes);
 routes.use(ticketzOSSRoutes);
 
 export default routes;
