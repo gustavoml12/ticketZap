@@ -83,20 +83,16 @@ services:
       start_period: 10s
 
   frontend:
+    container_name: frontend-${COOLIFY_SERVICE_ID}
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        REACT_APP_BACKEND_URL: /backend
-        NODE_ENV: production
-        DISABLE_ESLINT_PLUGIN: "true"
-        GENERATE_SOURCEMAP: "false"
-        CI: "false"
-        NODE_OPTIONS: "--max-old-space-size=2048"
-    ports:
-      - "34467:8080"
+    depends_on:
+      - backend
     networks:
       - coolify
+    ports:
+      - "80"
     deploy:
       mode: replicated
       replicas: 1
@@ -119,8 +115,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    depends_on:
-      - backend
     volumes:
       - type: bind
         source: ${MEDIA_STORAGE_PATH:-/var/lib/coolify/media_storage}
