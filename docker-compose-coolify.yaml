@@ -11,8 +11,8 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
-      # Usando o IP diretamente para o Redis já que o DNS não está resolvendo
-      - REDIS_URI=redis://default:rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY@10.0.2.10:6379/0
+      # Usando o IP correto do Redis (10.0.2.18)
+      - REDIS_URI=redis://default:rZzhHPOIoCFkQ72GtiPFmX852eji4fjON2llkUMT4njZneILmtbnQGIAS7TIviNY@10.0.2.18:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -64,7 +64,6 @@ services:
       - 127.0.0.11
     dns_search:
       - coolify
-    # Removendo os extra_hosts já que vamos usar o IP diretamente
     restart: unless-stopped
     stop_grace_period: 30s
     healthcheck:
