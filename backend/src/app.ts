@@ -13,6 +13,7 @@ import AppError from "./errors/AppError";
 import routes from "./routes";
 import { logger } from "./utils/logger";
 import { messageQueue, sendScheduledMessages } from "./queues";
+import { version } from "./controllers/VersionController";
 
 Sentry.init({ dsn: process.env.SENTRY_DSN });
 
@@ -44,6 +45,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   logger.error(err);
   return res.status(500).json({ error: "Internal server error" });
 });
+
+// Rota raiz - retorna informações básicas
+app.get("/", version);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
