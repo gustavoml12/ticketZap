@@ -60,15 +60,13 @@ app.get(`${baseUrl}/public-settings/:setting`, (req, res) => {
   // Configurações padrão
   const defaultSettings = {
     allowSignup: false,
-    primaryColorLight: "#007AFF",
+    primaryColor: "#007AFF",
     primaryColorDark: "#0A84FF",
+    primaryColorLight: "#007AFF",
     appName: "TicketZap",
     appLogoDark: "/backend/public/logo-dark.png",
     appLogoLight: "/backend/public/logo-light.png",
-    appLogoFavicon: "/backend/public/favicon.ico",
-    primaryColor: "#007AFF",
-    primaryColorDark: "#0A84FF",
-    primaryColorLight: "#007AFF"
+    appLogoFavicon: "/backend/public/favicon.ico"
   };
 
   // Log para debug
