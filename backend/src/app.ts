@@ -53,12 +53,23 @@ app.get(`${baseUrl}/manifest.json`, (req, res) => {
 // Servir configurações públicas
 app.get(`${baseUrl}/public-settings/:setting`, (req, res) => {
   const { setting } = req.params;
-  const settingsPath = path.resolve(__dirname, "..", "public", "settings", setting);
-  res.sendFile(settingsPath, (err) => {
-    if (err) {
-      res.status(404).json({ error: "Setting not found" });
-    }
-  });
+  
+  // Configurações padrão
+  const defaultSettings = {
+    allowSignup: false,
+    primaryColorLight: "#007AFF",
+    primaryColorDark: "#0A84FF",
+    appName: "TicketZap",
+    appLogoDark: "/backend/public/logo-dark.png",
+    appLogoLight: "/backend/public/logo-light.png",
+    appLogoFavicon: "/backend/public/favicon.ico"
+  };
+
+  if (setting in defaultSettings) {
+    res.json(defaultSettings[setting]);
+  } else {
+    res.status(404).json({ error: "Setting not found" });
+  }
 });
 
 // Adicionar o prefixo base às rotas da API

@@ -8,8 +8,9 @@ if (!config && ["localhost", "127.0.0.1"].includes(window.location.hostname)) {
   if (!config) {
     config = {
       "BACKEND_PROTOCOL": "http",
-      "BACKEND_HOST": "localhost",
-      "BACKEND_PORT": "8080",
+      "BACKEND_HOST": window.location.hostname,
+      "BACKEND_PORT": window.location.port,
+      "BACKEND_URL": "/backend",  
       "LOG_LEVEL": "debug"
     };
   }
@@ -20,20 +21,23 @@ if (!config) {
 }
 
 export function getBackendURL() {
-  return (
-    config.REACT_APP_BACKEND_URL ||
-    (config.BACKEND_PROTOCOL ?? "https") + "://" +
-    (config.BACKEND_HOST) + ":" + (config.BACKEND_PORT ?? 443) +
-    (config.BACKEND_PATH ?? "")
-  );
+  if (config.BACKEND_URL) {
+    return config.BACKEND_URL;
+  }
+  
+  const protocol = config.BACKEND_PROTOCOL || window.location.protocol.replace(":", "");
+  const host = config.BACKEND_HOST || window.location.hostname;
+  const port = config.BACKEND_PORT ? `:${config.BACKEND_PORT}` : "";
+  
+  return `${protocol}://${host}${port}/backend`;
 }
 
 export function getBackendSocketURL() {
-  return (
-    config.REACT_APP_BACKEND_URL ||
-    (config.BACKEND_PROTOCOL ?? "https") + "://" +
-    (config.BACKEND_HOST) + ":" + (config.BACKEND_PORT ?? 443)
-  );
+  const protocol = config.BACKEND_PROTOCOL === "https" ? "wss" : "ws";
+  const host = config.BACKEND_HOST || window.location.hostname;
+  const port = config.BACKEND_PORT ? `:${config.BACKEND_PORT}` : "";
+  
+  return `${protocol}://${host}${port}/backend`;
 }
 
 export default config;
