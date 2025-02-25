@@ -6,7 +6,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "31467:3000"
+      - "3000"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@10.0.2.10:5432/postgres
