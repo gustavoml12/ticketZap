@@ -4,7 +4,14 @@ import { Sequelize } from "sequelize";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const dbConfig = require("../config/database");
 
-const sequelize = new Sequelize(dbConfig);
+const sequelize = new Sequelize(dbConfig.url, {
+  dialect: dbConfig.dialect,
+  timezone: dbConfig.timezone,
+  logging: dbConfig.logging,
+  pool: dbConfig.pool,
+  define: dbConfig.define,
+  dialectOptions: dbConfig.dialectOptions
+});
 const seedsDir = "dist/database/seeds";
 
 function getSeedFiles() {
