@@ -8,7 +8,26 @@ if (!redisUrl) {
 
 console.log("Attempting Redis connection with URI");
 
-export const redis = new Redis(redisUrl);
+export const redis = new Redis(redisUrl, {
+  retryStrategy(times) {
+    const delay = Math.min(times * 50, 2000);
+    return delay;
+  },
+  maxRetriesPerRequest: null,
+  enableReadyCheck: true,
+  connectTimeout: 10000,
+  disconnectTimeout: 2000,
+  commandTimeout: 5000,
+  keepAlive: 10000,
+  enableOfflineQueue: true,
+  reconnectOnError: function (err) {
+    const targetError = "READONLY";
+    if (err.message.includes(targetError)) {
+      return true;
+    }
+    return false;
+  }
+});
 
 redis.on("error", (error) => {
   if (error.message.includes('WRONGPASS')) {
