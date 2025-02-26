@@ -40,7 +40,7 @@ RUN npm run build
 FROM nginx:stable-alpine
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 RUN rm -rf /etc/nginx/conf.d/default.conf
 
 # Set up permissions
