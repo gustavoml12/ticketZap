@@ -8,6 +8,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-${COOLIFY_SERVICE_ID}.rule=Host(`ticket.ebnez.com.br`) && PathPrefix(`/backend`)"
+      - "traefik.http.services.backend-${COOLIFY_SERVICE_ID}.loadbalancer.server.port=3000"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://postgres:iqF7IxfouW0Hskx0wL6gj8lp3R7dJiqXIkAViqGt2LZMrlypC6OkDeSlmxM5IfoP@twkw00kcwco0skoss80000c4:5432/postgres
@@ -80,6 +84,10 @@ services:
       dockerfile: Dockerfile
       args:
         - REACT_APP_BACKEND_URL=/api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-${COOLIFY_SERVICE_ID}.rule=Host(`ticket.ebnez.com.br`)"
+      - "traefik.http.services.frontend-${COOLIFY_SERVICE_ID}.loadbalancer.server.port=80"
     environment:
       - REACT_APP_BACKEND_URL=/api
     depends_on:
