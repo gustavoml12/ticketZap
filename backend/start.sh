@@ -18,6 +18,15 @@ error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Função para lidar com sinais de término
+cleanup() {
+    log "Encerrando aplicação..."
+    exit 0
+}
+
+# Registrar handlers para sinais
+trap cleanup SIGINT SIGTERM
+
 # Verificar variáveis de ambiente obrigatórias
 if [ -z "$DATABASE_URL" ]; then
     error "DATABASE_URL não está definida. Esta variável é obrigatória."
@@ -89,6 +98,10 @@ if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME"
         createAdmin();
     "
 fi
+
+# Criar arquivo de health check
+log "Criando arquivo de health check..."
+echo "ready" > /usr/src/app/healthcheck.txt
 
 # Iniciar a aplicação
 log "Iniciando servidor Node.js..."
