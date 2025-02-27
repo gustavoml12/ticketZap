@@ -19,8 +19,12 @@ if (!process.env.PORT) {
 // Function to start server and initialize services
 async function startServer() {
   try {
-    // Health check endpoint - respond early to prevent container from being killed
+    // Health check endpoints
     app.get("/", (req, res) => {
+      res.send("OK");
+    });
+
+    app.get("/health", (req, res) => {
       res.send("OK");
     });
 
