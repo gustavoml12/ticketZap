@@ -25,7 +25,7 @@ Os seguintes arquivos foram criados ou modificados para facilitar a implantaçã
 
 1. No Coolify, crie um novo serviço para o backend:
    - Tipo: Dockerfile
-   - Caminho do Dockerfile: `backend/Dockerfile.coolify`
+   - Caminho do Dockerfile: `backend/Dockerfile`
    - Porta: 3000
 
 2. Configure as variáveis de ambiente para o backend:
@@ -41,7 +41,14 @@ Os seguintes arquivos foram criados ou modificados para facilitar a implantaçã
    PRIVATE_DIR=/usr/src/app/private
    ```
 
-3. Configure volumes persistentes para o backend:
+3. (Opcional) Configure variáveis de ambiente adicionais para personalizar o usuário administrador:
+   ```
+   ADMIN_EMAIL=admin@exemplo.com
+   ADMIN_PASSWORD=senha_segura
+   ADMIN_NAME=Administrador
+   ```
+
+4. Configure volumes persistentes para o backend:
    - `/usr/src/app/uploads`: Para armazenar uploads de arquivos
    - `/usr/src/app/public`: Para arquivos públicos
    - `/usr/src/app/private`: Para arquivos privados
@@ -77,6 +84,32 @@ Os seguintes arquivos foram criados ou modificados para facilitar a implantaçã
 1. Configure seu domínio para apontar para o serviço do frontend.
 2. Se necessário, configure certificados SSL para seu domínio.
 
+## Processo de Inicialização e Migração do Banco de Dados
+
+O backend inclui um script de inicialização (`start.sh`) que automatiza o processo de verificação e configuração do banco de dados. Este script realiza as seguintes etapas:
+
+1. **Verificação de Conexão**: Verifica se o PostgreSQL está acessível usando as credenciais fornecidas em `DATABASE_URL`.
+
+2. **Criação do Banco de Dados**: Se o banco de dados especificado não existir, o script tentará criá-lo automaticamente.
+
+3. **Instalação de Extensões**: Verifica e instala as extensões PostgreSQL necessárias (`unaccent` e `uuid-ossp`).
+
+4. **Migração de Tabelas**: Verifica se as tabelas essenciais existem e, caso não existam, executa as migrações do Sequelize.
+
+5. **Criação de Usuário Administrador**: Se não houver um usuário administrador, cria um usuário padrão (a menos que variáveis de ambiente específicas sejam fornecidas para personalizar o administrador).
+
+Este processo garante que o banco de dados seja configurado corretamente na primeira inicialização, sem necessidade de intervenção manual.
+
+### Solução de Problemas
+
+Se o deploy falhar devido a problemas com o banco de dados, verifique os logs do container para identificar o problema específico. Os problemas mais comuns incluem:
+
+- **Falha na Conexão**: Verifique se a string de conexão `DATABASE_URL` está correta e se o PostgreSQL está acessível.
+- **Permissões Insuficientes**: Verifique se o usuário PostgreSQL tem permissões para criar bancos de dados e extensões.
+- **Falha nas Migrações**: Verifique os logs para erros específicos durante o processo de migração.
+
+Para mais detalhes, consulte o arquivo `DEPLOY-INSTRUCTIONS.md`.
+
 ## Verificação da Implantação
 
 Após a implantação, verifique se:
@@ -102,4 +135,3 @@ Após a implantação do backend, você pode precisar executar migrações de ba
 ```bash
 # Acesse o terminal do serviço backend no Coolify e execute:
 npm run db:migrate
-```

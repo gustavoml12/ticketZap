@@ -110,6 +110,12 @@ COPY --chown=appuser:appuser <<EOF /usr/src/app/config/config.json
 }
 EOF
 
+# Copiar o script de inicialização
+COPY --chown=appuser:appuser start.sh /usr/src/app/start.sh
+COPY --chown=appuser:appuser create_tables.sql /usr/src/app/create_tables.sql
+
+RUN chmod +x /usr/src/app/start.sh
+
 # Criar arquivo de configuração do PM2
 COPY --chown=appuser:appuser <<EOF /usr/src/app/ecosystem.config.js
 module.exports = {
@@ -136,139 +142,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 
 # Mudar para o usuário não-root
 USER appuser
-
-# Criar script de inicialização
-COPY --chown=appuser:appuser <<EOF /usr/src/app/start.sh
-#!/bin/sh
-echo "Criando diretório de configuração..."
-mkdir -p /usr/src/app/config
-
-echo "Criando arquivo de configuração do Sequelize..."
-cat > /usr/src/app/config/config.json << 'CONFIGJSON'
-{
-  "development": {
-    "url": "${DATABASE_URL}",
-    "dialect": "postgres",
-    "timezone": "-03:00",
-    "logging": false,
-    "define": {
-      "charset": "utf8",
-      "collate": "utf8_general_ci"
-    },
-    "pool": {
-      "max": 60,
-      "min": 5,
-      "acquire": 30000,
-      "idle": 10000
-    },
-    "dialectOptions": {
-      "ssl": false
-    }
-  },
-  "test": {
-    "url": "${DATABASE_URL}",
-    "dialect": "postgres",
-    "timezone": "-03:00",
-    "logging": false,
-    "define": {
-      "charset": "utf8",
-      "collate": "utf8_general_ci"
-    },
-    "pool": {
-      "max": 60,
-      "min": 5,
-      "acquire": 30000,
-      "idle": 10000
-    },
-    "dialectOptions": {
-      "ssl": false
-    }
-  },
-  "production": {
-    "url": "${DATABASE_URL}",
-    "dialect": "postgres",
-    "timezone": "-03:00",
-    "logging": false,
-    "define": {
-      "charset": "utf8",
-      "collate": "utf8_general_ci"
-    },
-    "pool": {
-      "max": 60,
-      "min": 5,
-      "acquire": 30000,
-      "idle": 10000
-    },
-    "dialectOptions": {
-      "ssl": false
-    }
-  }
-}
-CONFIGJSON
-
-echo "Verificando conexão com o banco de dados..."
-# Extrair informações da string de conexão DATABASE_URL de forma mais segura
-# Exemplo de DATABASE_URL: postgres://usuario:senha@host:5432/banco
-
-# Aguardar até que o banco de dados esteja disponível
-max_retries=30
-counter=0
-
-echo "Verificando conexão com o banco de dados PostgreSQL..."
-# Usar variáveis de ambiente diretamente do DATABASE_URL
-# O PostgreSQL pode usar a variável DATABASE_URL diretamente
-until pg_isready -d "$DATABASE_URL" > /dev/null 2>&1
-do
-    counter=$((counter+1))
-    if [ $counter -ge $max_retries ]; then
-        echo "ERRO: Não foi possível conectar ao banco de dados após $max_retries tentativas."
-        echo "Verifique se o serviço PostgreSQL está em execução e acessível."
-        echo "DATABASE_URL: ${DATABASE_URL//:\/\/[^:]*:[^@]*@/:\/\/usuario:senha@}" # Oculta credenciais no log
-        exit 1
-    fi
-    echo "Aguardando conexão com o banco de dados... ($counter/$max_retries)"
-    sleep 2
-done
-
-echo "Conexão com o banco de dados estabelecida com sucesso."
-
-# Verificar se a tabela Settings já existe usando psql com DATABASE_URL
-echo "Verificando se as tabelas já existem..."
-TABLE_EXISTS=$(psql "$DATABASE_URL" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Settings')")
-
-if echo "$TABLE_EXISTS" | grep -q "t"; then
-    echo "Tabela Settings já existe. Verificando outras tabelas essenciais..."
-    
-    # Verificar outras tabelas essenciais
-    USERS_EXISTS=$(psql "$DATABASE_URL" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Users')")
-    COMPANIES_EXISTS=$(psql "$DATABASE_URL" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Companies')")
-    
-    if echo "$USERS_EXISTS" | grep -q "t" && echo "$COMPANIES_EXISTS" | grep -q "t"; then
-        echo "Todas as tabelas essenciais existem. Pulando a criação de tabelas."
-    else
-        echo "AVISO: Algumas tabelas essenciais estão faltando. Executando migrações..."
-        cd /usr/src/app
-        npx sequelize-cli db:migrate
-        echo "Migrações concluídas."
-    fi
-else
-    echo "Tabela Settings não encontrada. Executando migrações..."
-    cd /usr/src/app
-    npx sequelize-cli db:migrate
-    if [ $? -ne 0 ]; then
-        echo "ERRO: Falha ao executar migrações automáticas."
-        echo "Você pode precisar executar migrações manualmente usando o script manual_migration.sh"
-        # Continuar mesmo com erro, para que o container não falhe na inicialização
-    else
-        echo "Migrações concluídas com sucesso."
-    fi
-fi
-
-echo "Iniciando a aplicação..."
-pm2-runtime start ecosystem.config.js
-EOF
-
-RUN chmod +x /usr/src/app/start.sh
 
 # Iniciar a aplicação
 CMD ["/usr/src/app/start.sh"]
