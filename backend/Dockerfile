@@ -12,6 +12,9 @@ RUN --mount=type=cache,target=/root/.npm \
 
 COPY . .
 
+# Compilar TypeScript
+RUN npm run build
+
 # Adicionar script de preparação para migrações
 COPY prepare-migrations.js ./prepare-migrations.js
 
@@ -41,6 +44,9 @@ RUN apk add --no-cache \
 RUN addgroup -S appuser && \
     adduser -S appuser -G appuser
 
+# Criar diretórios necessários
+RUN mkdir -p /usr/src/app/dist
+
 # Copiar apenas os arquivos necessários
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
@@ -48,6 +54,9 @@ COPY --from=build /usr/src/app/package.json ./package.json
 COPY --from=build /usr/src/app/prepare-migrations.js ./prepare-migrations.js
 COPY --from=build /usr/src/app/create_tables.sql ./create_tables.sql
 COPY --from=build /usr/src/app/start.sh ./start.sh
+
+# Verificar conteúdo do diretório dist
+RUN ls -la /usr/src/app/dist
 
 # Criar diretórios para mídia e definir permissões
 RUN mkdir -p /usr/src/app/public && \
