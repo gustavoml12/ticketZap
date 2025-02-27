@@ -4,11 +4,14 @@ FROM node:20-alpine as build
 
 WORKDIR /usr/src/app
 
+# Copiar apenas arquivos necessários para instalar dependências
 COPY package*.json ./
 
+# Usar cache para npm install
 RUN --mount=type=cache,target=/root/.npm \
-    npm install
+    npm ci --only=production
 
+# Copiar o restante dos arquivos
 COPY . .
 
 RUN mkdir -p public/settings && \
@@ -23,29 +26,22 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
+# Instalar dependências em uma única camada para reduzir o tamanho da imagem
 RUN apk add --no-cache wget curl postgresql-client redis && \
-    npm install -g pm2
-
-# Criar usuário não-root
-RUN addgroup -g 1001 -S appuser && \
+    npm install -g pm2 && \
+    addgroup -g 1001 -S appuser && \
     adduser -u 1001 -S appuser -G appuser
 
-# Copiar apenas os arquivos necessários
-COPY --from=build /usr/src/app/dist ./dist
-COPY --from=build /usr/src/app/node_modules ./node_modules
-COPY --from=build /usr/src/app/package.json ./package.json
+# Copiar apenas os arquivos necessários do estágio de build
+COPY --from=build --chown=appuser:appuser /usr/src/app/dist ./dist
+COPY --from=build --chown=appuser:appuser /usr/src/app/node_modules ./node_modules
+COPY --from=build --chown=appuser:appuser /usr/src/app/package.json ./package.json
+COPY --from=build --chown=appuser:appuser /usr/src/app/public ./public
 
-# Criar diretórios para mídia e definir permissões
-RUN mkdir -p /usr/src/app/public && \
-    mkdir -p /usr/src/app/uploads && \
-    mkdir -p /usr/src/app/private && \
-    mkdir -p /usr/src/app/logs && \
-    mkdir -p /usr/src/app/config && \
+# Criar diretórios para mídia e definir permissões de forma mais eficiente
+RUN mkdir -p /usr/src/app/uploads /usr/src/app/private /usr/src/app/logs /usr/src/app/config && \
     chown -R appuser:appuser /usr/src/app && \
     chmod -R 755 /usr/src/app
-
-# Copiar arquivos públicos do build
-COPY --from=build --chown=appuser:appuser /usr/src/app/public ./public
 
 # Criar arquivo de configuração do Sequelize
 COPY --chown=appuser:appuser <<EOF /usr/src/app/config/config.json

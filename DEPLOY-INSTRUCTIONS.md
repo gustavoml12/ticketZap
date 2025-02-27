@@ -52,6 +52,22 @@ MAIL_PASS=senha
 MAIL_FROM=noreply@exemplo.com
 ```
 
+## Preparação para Deploy
+
+Antes de iniciar o processo de deploy, execute o script de preparação para garantir que todos os arquivos necessários estejam no lugar correto:
+
+```bash
+./prepare_for_deploy.sh
+```
+
+Este script irá:
+1. Verificar e copiar o arquivo `start.sh` para o diretório `backend/`
+2. Verificar e copiar o arquivo `create_tables.sql` para o diretório `backend/`
+3. Verificar se o Dockerfile está configurado corretamente
+4. Criar ou verificar o arquivo `.dockerignore` no diretório `backend/`
+
+Após executar o script, o projeto estará pronto para ser implantado no Coolify.
+
 ## Processo de Deploy
 
 ### 1. Configuração do Banco de Dados
@@ -103,6 +119,47 @@ Após o deploy, verifique os logs para garantir que:
 - Verifique se todas as variáveis de ambiente obrigatórias estão configuradas
 - Examine os logs do container para identificar erros específicos
 - Verifique se o Redis está acessível
+
+### Problema: Build Docker Lento ou Travado
+
+Se o processo de build Docker estiver muito lento ou parecer travado:
+
+1. **Recursos limitados**: Verifique se o servidor tem recursos suficientes (CPU, memória) para o processo de build.
+
+2. **Etapas demoradas**: Algumas etapas, como a cópia de `node_modules`, podem levar mais tempo. Aguarde pelo menos 5-10 minutos antes de considerar que o processo travou.
+
+3. **Otimização do Dockerfile**: 
+   - Combine comandos RUN relacionados usando `&&` para reduzir o número de camadas
+   - Use `.dockerignore` para excluir arquivos desnecessários do contexto de build
+   - Considere usar uma imagem base mais leve
+
+4. **Monitoramento do build**: Use o script `monitor_build.sh` para monitorar o processo de build:
+   ```bash
+   ./monitor_build.sh <container_id_ou_nome>
+   ```
+   Este script mostrará estatísticas em tempo real do container, incluindo uso de CPU, memória, processos em execução e logs recentes.
+
+5. **Reinicie o processo de build**: Se o build estiver realmente travado, cancele e reinicie o processo.
+
+6. **Verifique os logs**: Os logs detalhados podem fornecer informações sobre onde exatamente o processo está travando.
+
+## Resolução de Problemas Comuns
+
+Para uma lista completa e detalhada de problemas e soluções relacionados ao Docker, consulte o guia [DOCKER-TROUBLESHOOTING.md](./DOCKER-TROUBLESHOOTING.md).
+
+### Falha na Construção da Imagem Docker
+
+**Solução:**
+- Verifique se o Dockerfile está correto e se todas as dependências estão listadas
+- Verifique se o contexto de build está correto e se não há arquivos desnecessários
+- Verifique se a imagem base está disponível e se não há problemas de rede
+
+### Problema: Falha na Inicialização do Banco de Dados
+
+**Solução:**
+- Verifique se o banco de dados está acessível
+- Confirme que as credenciais estão corretas
+- Verifique as configurações de rede e firewall
 
 ## Alterações Recentes
 
