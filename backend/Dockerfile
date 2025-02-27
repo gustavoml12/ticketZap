@@ -144,7 +144,7 @@ EOF
 EXPOSE 3000
 
 # Verificação de saúde
-HEALTHCHECK --interval=30s --timeout=30s --start-period=120s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=30s --start-period=220s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
 # Mudar para o usuário não-root
@@ -153,11 +153,6 @@ USER appuser
 # Criar script de inicialização
 COPY --chown=appuser:appuser <<EOF /usr/src/app/start.sh
 #!/bin/sh
-
-# Função para exibir logs com timestamp
-log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
-}
 
 # Verificar conexão com o banco de dados
 log "Verificando conexão com o banco de dados..."
