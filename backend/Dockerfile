@@ -61,8 +61,7 @@ COPY --from=build --chown=appuser:appuser /usr/src/app/public ./public
 COPY --chown=appuser:appuser --from=build /usr/src/app/prepare-migrations.js ./prepare-migrations.js
 
 # Criar arquivo de configuração do Sequelize
-COPY --chown=appuser:appuser <<EOF /usr/src/app/config/config.json
-{
+RUN echo '{
   "development": {
     "url": "${DATABASE_URL}",
     "dialect": "postgres",
@@ -120,25 +119,24 @@ COPY --chown=appuser:appuser <<EOF /usr/src/app/config/config.json
       "ssl": false
     }
   }
-}
-EOF
+}' > /usr/src/app/config/config.json && \
+    chown appuser:appuser /usr/src/app/config/config.json
 
 # Criar arquivo de configuração do PM2
-COPY --chown=appuser:appuser <<EOF /usr/src/app/ecosystem.config.js
-module.exports = {
+RUN echo 'module.exports = {
   apps: [{
-    name: 'backend',
-    script: './dist/server.js',
+    name: "backend",
+    script: "./dist/server.js",
     instances: 1,
-    exec_mode: 'fork',
+    exec_mode: "fork",
     watch: false,
-    max_memory_restart: '1G',
+    max_memory_restart: "1G",
     env: {
-      NODE_ENV: 'production'
+      NODE_ENV: "production"
     }
   }]
-}
-EOF
+}' > /usr/src/app/ecosystem.config.js && \
+    chown appuser:appuser /usr/src/app/ecosystem.config.js
 
 # Expor a porta
 EXPOSE 3000
@@ -147,12 +145,8 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=220s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
-# Mudar para o usuário não-root
-USER appuser
-
 # Criar script de inicialização
-COPY --chown=appuser:appuser <<EOF /usr/src/app/start.sh
-#!/bin/bash
+RUN echo '#!/bin/bash
 
 # Define log function
 log() {
@@ -166,11 +160,11 @@ log "DATABASE_URL: \${DATABASE_URL}"
 # Extrair informações do banco de dados usando expressões mais simples
 if [ -n "\$DATABASE_URL" ]; then
   # Exemplo: postgres://user:password@host:port/dbname
-  DB_USER=\$(echo "\$DATABASE_URL" | awk -F '//' '{print \$2}' | awk -F ':' '{print \$1}')
-  DB_PASS=\$(echo "\$DATABASE_URL" | awk -F ':' '{print \$3}' | awk -F '@' '{print \$1}')
-  DB_HOST=\$(echo "\$DATABASE_URL" | awk -F '@' '{print \$2}' | awk -F ':' '{print \$1}')
-  DB_PORT=\$(echo "\$DATABASE_URL" | awk -F ':' '{print \$4}' | awk -F '/' '{print \$1}')
-  DB_NAME=\$(echo "\$DATABASE_URL" | awk -F '/' '{print \$NF}')
+  DB_USER=\$(echo "\$DATABASE_URL" | awk -F "//" "{print \$2}" | awk -F ":" "{print \$1}")
+  DB_PASS=\$(echo "\$DATABASE_URL" | awk -F ":" "{print \$3}" | awk -F "@" "{print \$1}")
+  DB_HOST=\$(echo "\$DATABASE_URL" | awk -F "@" "{print \$2}" | awk -F ":" "{print \$1}")
+  DB_PORT=\$(echo "\$DATABASE_URL" | awk -F ":" "{print \$4}" | awk -F "/" "{print \$1}")
+  DB_NAME=\$(echo "\$DATABASE_URL" | awk -F "/" "{print \$NF}")
   
   log "Informações extraídas:"
   log "Host: \$DB_HOST"
@@ -180,7 +174,7 @@ if [ -n "\$DATABASE_URL" ]; then
   
   # Tentar conexão com o banco
   export PGPASSWORD=\$DB_PASS
-  until psql -h "\$DB_HOST" -p "\$DB_PORT" -U "\$DB_USER" -c '\q'; do
+  until psql -h "\$DB_HOST" -p "\$DB_PORT" -U "\$DB_USER" -c "\q"; do
     log "Banco de dados não está disponível ainda - aguardando..."
     sleep 3
   done
@@ -210,10 +204,12 @@ log "Migrações executadas com sucesso!"
 
 # Iniciar aplicação
 log "Iniciando a aplicação com PM2..."
-pm2-runtime start ecosystem.config.js
-EOF
+pm2-runtime start ecosystem.config.js' > /usr/src/app/start.sh && \
+    chmod +x /usr/src/app/start.sh && \
+    chown appuser:appuser /usr/src/app/start.sh
 
-RUN chmod +x /usr/src/app/start.sh
+# Mudar para o usuário não-root
+USER appuser
 
 # Iniciar a aplicação
 CMD ["/usr/src/app/start.sh"]
