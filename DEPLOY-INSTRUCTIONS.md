@@ -104,6 +104,16 @@ Após o deploy, verifique os logs para garantir que:
 - Examine os logs do container para identificar erros específicos
 - Verifique se o Redis está acessível
 
+## Alterações Recentes
+
+### Correções de Problemas de Deploy
+
+Recentemente, foram feitas alterações para resolver problemas de deploy com o Coolify. As seguintes melhorias foram implementadas:
+
+- **Verificação de arquivos de script**: Agora, o sistema verifica se os arquivos `start.sh` e `create_tables.sql` estão presentes no diretório `backend/` antes de iniciar o deploy.
+- **Permissões de arquivo**: O sistema agora configura automaticamente as permissões de execução para o arquivo `start.sh`.
+- **Configuração de variáveis de ambiente**: Foram adicionadas verificações para garantir que todas as variáveis de ambiente necessárias estejam configuradas no Coolify.
+
 ## Manutenção
 
 ### Backup do Banco de Dados

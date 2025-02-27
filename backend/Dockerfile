@@ -110,10 +110,9 @@ COPY --chown=appuser:appuser <<EOF /usr/src/app/config/config.json
 }
 EOF
 
-# Copiar o script de inicialização
+# Copiar scripts de inicialização
 COPY --chown=appuser:appuser start.sh /usr/src/app/start.sh
 COPY --chown=appuser:appuser create_tables.sql /usr/src/app/create_tables.sql
-
 RUN chmod +x /usr/src/app/start.sh
 
 # Criar arquivo de configuração do PM2

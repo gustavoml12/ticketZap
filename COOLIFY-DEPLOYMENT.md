@@ -110,6 +110,43 @@ Se o deploy falhar devido a problemas com o banco de dados, verifique os logs do
 
 Para mais detalhes, consulte o arquivo `DEPLOY-INSTRUCTIONS.md`.
 
+## Requisitos de Ambiente
+
+Antes de iniciar o deploy no Coolify, certifique-se de que o repositório esteja corretamente configurado:
+
+1. **Verifique a estrutura de arquivos**:
+   
+   Os seguintes arquivos devem estar presentes no diretório `backend/`:
+   
+   - `start.sh`: Script de inicialização que configura o banco de dados e inicia a aplicação
+   - `create_tables.sql`: Script SQL para criação das tabelas essenciais
+   
+   Se estes arquivos não estiverem presentes, copie-os do diretório raiz:
+   
+   ```bash
+   cp /caminho/para/SistemaAtendimento/start.sh /caminho/para/SistemaAtendimento/backend/
+   cp /caminho/para/SistemaAtendimento/create_tables.sql /caminho/para/SistemaAtendimento/backend/
+   ```
+
+2. **Verifique o Dockerfile**:
+   
+   O Dockerfile no diretório `backend/` deve conter as instruções corretas para copiar os arquivos `start.sh` e `create_tables.sql`. Verifique se as seguintes linhas estão presentes:
+   
+   ```dockerfile
+   # Copiar scripts de inicialização
+   COPY --chown=appuser:appuser start.sh /usr/src/app/start.sh
+   COPY --chown=appuser:appuser create_tables.sql /usr/src/app/create_tables.sql
+   RUN chmod +x /usr/src/app/start.sh
+   ```
+
+3. **Verifique as permissões**:
+   
+   Certifique-se de que o arquivo `start.sh` tenha permissões de execução:
+   
+   ```bash
+   chmod +x /caminho/para/SistemaAtendimento/backend/start.sh
+   ```
+
 ## Verificação da Implantação
 
 Após a implantação, verifique se:
