@@ -152,30 +152,35 @@ USER appuser
 
 # Criar script de inicialização
 COPY --chown=appuser:appuser <<EOF /usr/src/app/start.sh
-#!/bin/sh
+#!/bin/bash
+
+# Define log function
+log() {
+    echo -e "[INFO] \$1"
+}
 
 # Verificar conexão com o banco de dados
 log "Verificando conexão com o banco de dados..."
-log "DATABASE_URL: ${DATABASE_URL}"
+log "DATABASE_URL: \${DATABASE_URL}"
 
 # Extrair informações do banco de dados usando expressões mais simples
-if [ -n "$DATABASE_URL" ]; then
+if [ -n "\$DATABASE_URL" ]; then
   # Exemplo: postgres://user:password@host:port/dbname
-  DB_USER=$(echo "$DATABASE_URL" | awk -F '//' '{print $2}' | awk -F ':' '{print $1}')
-  DB_PASS=$(echo "$DATABASE_URL" | awk -F ':' '{print $3}' | awk -F '@' '{print $1}')
-  DB_HOST=$(echo "$DATABASE_URL" | awk -F '@' '{print $2}' | awk -F ':' '{print $1}')
-  DB_PORT=$(echo "$DATABASE_URL" | awk -F ':' '{print $4}' | awk -F '/' '{print $1}')
-  DB_NAME=$(echo "$DATABASE_URL" | awk -F '/' '{print $NF}')
+  DB_USER=\$(echo "\$DATABASE_URL" | awk -F '//' '{print \$2}' | awk -F ':' '{print \$1}')
+  DB_PASS=\$(echo "\$DATABASE_URL" | awk -F ':' '{print \$3}' | awk -F '@' '{print \$1}')
+  DB_HOST=\$(echo "\$DATABASE_URL" | awk -F '@' '{print \$2}' | awk -F ':' '{print \$1}')
+  DB_PORT=\$(echo "\$DATABASE_URL" | awk -F ':' '{print \$4}' | awk -F '/' '{print \$1}')
+  DB_NAME=\$(echo "\$DATABASE_URL" | awk -F '/' '{print \$NF}')
   
   log "Informações extraídas:"
-  log "Host: $DB_HOST"
-  log "Porta: $DB_PORT"
-  log "Usuário: $DB_USER"
-  log "Banco: $DB_NAME"
+  log "Host: \$DB_HOST"
+  log "Porta: \$DB_PORT"
+  log "Usuário: \$DB_USER"
+  log "Banco: \$DB_NAME"
   
   # Tentar conexão com o banco
-  export PGPASSWORD=$DB_PASS
-  until psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c '\q'; do
+  export PGPASSWORD=\$DB_PASS
+  until psql -h "\$DB_HOST" -p "\$DB_PORT" -U "\$DB_USER" -c '\q'; do
     log "Banco de dados não está disponível ainda - aguardando..."
     sleep 3
   done
@@ -188,7 +193,7 @@ fi
 # Preparar configuração para migrações
 log "Preparando configuração para migrações..."
 node prepare-migrations.js
-if [ $? -ne 0 ]; then
+if [ \$? -ne 0 ]; then
   log "ERRO: Falha ao preparar configuração para migrações"
   exit 1
 fi
@@ -197,7 +202,7 @@ log "Configuração para migrações preparada com sucesso"
 # Executar migrações
 log "Iniciando execução das migrações do banco de dados..."
 npm run db:migrate
-if [ $? -ne 0 ]; then
+if [ \$? -ne 0 ]; then
   log "ERRO: Falha ao executar migrações"
   exit 1
 fi
