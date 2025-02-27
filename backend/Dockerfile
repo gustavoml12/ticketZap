@@ -28,9 +28,9 @@ FROM node:20-alpine
 WORKDIR /usr/src/app
 
 RUN apk add --no-cache \
-    wget \
-    curl \
     postgresql-client \
+    curl \
+    bash \
     redis \
     vim \
     procps \
@@ -38,8 +38,8 @@ RUN apk add --no-cache \
     && npm install -g pm2
 
 # Criar usuário não-root
-RUN addgroup -g 1001 -S appuser && \
-    adduser -u 1001 -S appuser -G appuser
+RUN addgroup -S appuser && \
+    adduser -S appuser -G appuser
 
 # Copiar apenas os arquivos necessários
 COPY --from=build /usr/src/app/dist ./dist
@@ -70,15 +70,36 @@ RUN echo "{\"development\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\"
 RUN echo "module.exports = {apps:[{name:\"backend\",script:\"./dist/server.js\",instances:1,exec_mode:\"fork\",watch:false,max_memory_restart:\"1G\",env:{NODE_ENV:\"production\"}}]}" > /usr/src/app/ecosystem.config.js && \
     chown appuser:appuser /usr/src/app/ecosystem.config.js
 
+# Criar script de entrypoint
+RUN printf '#!/bin/sh\n\
+set -e\n\
+\n\
+# Verificar se o start.sh existe e tem permissão de execução\n\
+if [ ! -f /usr/src/app/start.sh ]; then\n\
+    echo "ERRO: /usr/src/app/start.sh não encontrado"\n\
+    ls -la /usr/src/app/\n\
+    exit 1\n\
+fi\n\
+\n\
+if [ ! -x /usr/src/app/start.sh ]; then\n\
+    echo "ERRO: /usr/src/app/start.sh não tem permissão de execução"\n\
+    ls -la /usr/src/app/start.sh\n\
+    exit 1\n\
+fi\n\
+\n\
+# Executar o script\n\
+exec /usr/src/app/start.sh\n' > /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Expor a porta
 EXPOSE 3000
 
 # Verificação de saúde
 HEALTHCHECK --interval=30s --timeout=30s --start-period=220s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:3000/ || exit 1
 
 # Mudar para o usuário não-root
 USER appuser
 
-# Iniciar a aplicação
-CMD ["/usr/src/app/start.sh"]
+# Definir o entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
