@@ -1,0 +1,7 @@
+# Frontend environment variables
+REACT_APP_BACKEND_URL=/api
+NODE_ENV=production
+DISABLE_ESLINT_PLUGIN=true
+GENERATE_SOURCEMAP=false
+CI=false
+NODE_OPTIONS=--max-old-space-size=2048

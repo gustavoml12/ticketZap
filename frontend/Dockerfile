@@ -61,11 +61,15 @@ RUN mkdir -p /usr/src/app/uploads \
     && touch /tmp/nginx.pid \
     && chown -R nginx:nginx /tmp/nginx.pid
 
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget --spider -q http://localhost:80/ || exit 1
+
 # Switch to non-root user
 USER nginx
 
 # Expose port
-EXPOSE 8080
+EXPOSE 80
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,25 @@
+# Database
+DATABASE_URL=postgres://postgres:sBRFcX3M3z6SY0W5V6Jz42yzBOlM4qiBDXx9pkcoRb1qOTvuF0KdxF8M3YuGwpsJ@u80ggksoo4k40ccwsg8ww4k0:5432/postgres
+
+# Redis
+REDIS_URI=redis://default:gTLgFjDx9Vs5MExecw5codEFcVp068VrCH6pdqMt0PouhC2W0piy8RIBjN5CBnwo@qogoksgwc4kk8cswc0g488w8:6379/0
+
+# JWT
+JWT_SECRET=ticket
+JWT_REFRESH_SECRET=ticket-refresh
+
+# App
+NODE_ENV=production
+PORT=3000
+
+# Directories
+UPLOAD_DIR=/usr/src/app/uploads
+PUBLIC_DIR=/usr/src/app/public
+PRIVATE_DIR=/usr/src/app/private
+
+# Frontend URL - Ajuste conforme necessário
+FRONTEND_URL=https://seu-dominio.com.br
+
+
+
+Dockerfile.coolify

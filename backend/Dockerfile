@@ -63,6 +63,13 @@ module.exports = {
 }
 EOF
 
+# Expor a porta
+EXPOSE 3000
+
+# Verificação de saúde
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget --spider -q http://localhost:3000/health || exit 1
+
 # Mudar para o usuário não-root
 USER appuser
 
