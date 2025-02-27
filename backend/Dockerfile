@@ -140,8 +140,108 @@ USER appuser
 # Criar script de inicialização
 COPY --chown=appuser:appuser <<EOF /usr/src/app/start.sh
 #!/bin/sh
-echo "Executando migrações do banco de dados..."
-npm run db:migrate
+echo "Criando diretório de configuração..."
+mkdir -p /usr/src/app/config
+
+echo "Criando arquivo de configuração do Sequelize..."
+cat > /usr/src/app/config/config.json << 'CONFIGJSON'
+{
+  "development": {
+    "url": "${DATABASE_URL}",
+    "dialect": "postgres",
+    "timezone": "-03:00",
+    "logging": false,
+    "define": {
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    },
+    "pool": {
+      "max": 60,
+      "min": 5,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "ssl": false
+    }
+  },
+  "test": {
+    "url": "${DATABASE_URL}",
+    "dialect": "postgres",
+    "timezone": "-03:00",
+    "logging": false,
+    "define": {
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    },
+    "pool": {
+      "max": 60,
+      "min": 5,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "ssl": false
+    }
+  },
+  "production": {
+    "url": "${DATABASE_URL}",
+    "dialect": "postgres",
+    "timezone": "-03:00",
+    "logging": false,
+    "define": {
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    },
+    "pool": {
+      "max": 60,
+      "min": 5,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "ssl": false
+    }
+  }
+}
+CONFIGJSON
+
+# Extrair informações da string de conexão DATABASE_URL
+DB_HOST=$(echo $DATABASE_URL | sed -n 's/^postgres:\/\/[^:]*:[^@]*@\([^:]*\):.*/\1/p')
+DB_PORT=$(echo $DATABASE_URL | sed -n 's/^postgres:\/\/[^:]*:[^@]*@[^:]*:\([^/]*\)\/.*/\1/p')
+DB_USER=$(echo $DATABASE_URL | sed -n 's/^postgres:\/\/\([^:]*\):.*/\1/p')
+DB_NAME=$(echo $DATABASE_URL | sed -n 's/^postgres:\/\/[^:]*:[^@]*@[^:]*:[^/]*\/\(.*\)$/\1/p')
+
+echo "Verificando conexão com o banco de dados..."
+# Aguardar até que o banco de dados esteja disponível
+max_retries=30
+counter=0
+until PGPASSWORD=${DATABASE_URL#*:*:} psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "SELECT 1" > /dev/null 2>&1
+do
+    counter=$((counter+1))
+    if [ $counter -ge $max_retries ]; then
+        echo "Não foi possível conectar ao banco de dados após $max_retries tentativas."
+        exit 1
+    fi
+    echo "Aguardando conexão com o banco de dados... ($counter/$max_retries)"
+    sleep 2
+done
+
+echo "Conexão com o banco de dados estabelecida."
+
+# Verificar se a tabela Settings já existe
+echo "Verificando se as tabelas já existem..."
+TABLE_EXISTS=$(PGPASSWORD=${DATABASE_URL#*:*:} psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Settings')")
+
+if [[ $TABLE_EXISTS == *"t"* ]]; then
+    echo "Tabela Settings já existe. Pulando a criação de tabelas."
+else
+    echo "Tabela Settings não encontrada. Executando migrações..."
+    cd /usr/src/app
+    npx sequelize-cli db:migrate
+    echo "Migrações concluídas."
+fi
+
 echo "Iniciando a aplicação..."
 pm2-runtime start ecosystem.config.js
 EOF
