@@ -1,0 +1,59 @@
+{
+  "development": {
+    "url": "postgres://postgres:sBRFcX3M3z6SY0W5V6Jz42yzBOlM4qiBDXx9pkcoRb1qOTvuF0KdxF8M3YuGwpsJ@u80ggksoo4k40ccwsg8ww4k0:5432/postgres",
+    "dialect": "postgres",
+    "timezone": "-03:00",
+    "logging": false,
+    "define": {
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    },
+    "pool": {
+      "max": 60,
+      "min": 5,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "ssl": false
+    }
+  },
+  "test": {
+    "url": "postgres://postgres:sBRFcX3M3z6SY0W5V6Jz42yzBOlM4qiBDXx9pkcoRb1qOTvuF0KdxF8M3YuGwpsJ@u80ggksoo4k40ccwsg8ww4k0:5432/postgres",
+    "dialect": "postgres",
+    "timezone": "-03:00",
+    "logging": false,
+    "define": {
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    },
+    "pool": {
+      "max": 60,
+      "min": 5,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "ssl": false
+    }
+  },
+  "production": {
+    "url": "postgres://postgres:sBRFcX3M3z6SY0W5V6Jz42yzBOlM4qiBDXx9pkcoRb1qOTvuF0KdxF8M3YuGwpsJ@u80ggksoo4k40ccwsg8ww4k0:5432/postgres",
+    "dialect": "postgres",
+    "timezone": "-03:00",
+    "logging": false,
+    "define": {
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    },
+    "pool": {
+      "max": 60,
+      "min": 5,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "ssl": false
+    }
+  }
+}

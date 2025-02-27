@@ -40,11 +40,75 @@ RUN mkdir -p /usr/src/app/public && \
     mkdir -p /usr/src/app/uploads && \
     mkdir -p /usr/src/app/private && \
     mkdir -p /usr/src/app/logs && \
+    mkdir -p /usr/src/app/config && \
     chown -R appuser:appuser /usr/src/app && \
     chmod -R 755 /usr/src/app
 
 # Copiar arquivos públicos do build
 COPY --from=build --chown=appuser:appuser /usr/src/app/public ./public
+
+# Criar arquivo de configuração do Sequelize
+COPY --chown=appuser:appuser <<EOF /usr/src/app/config/config.json
+{
+  "development": {
+    "url": "${DATABASE_URL}",
+    "dialect": "postgres",
+    "timezone": "-03:00",
+    "logging": false,
+    "define": {
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    },
+    "pool": {
+      "max": 60,
+      "min": 5,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "ssl": false
+    }
+  },
+  "test": {
+    "url": "${DATABASE_URL}",
+    "dialect": "postgres",
+    "timezone": "-03:00",
+    "logging": false,
+    "define": {
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    },
+    "pool": {
+      "max": 60,
+      "min": 5,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "ssl": false
+    }
+  },
+  "production": {
+    "url": "${DATABASE_URL}",
+    "dialect": "postgres",
+    "timezone": "-03:00",
+    "logging": false,
+    "define": {
+      "charset": "utf8",
+      "collate": "utf8_general_ci"
+    },
+    "pool": {
+      "max": 60,
+      "min": 5,
+      "acquire": 30000,
+      "idle": 10000
+    },
+    "dialectOptions": {
+      "ssl": false
+    }
+  }
+}
+EOF
 
 # Criar arquivo de configuração do PM2
 COPY --chown=appuser:appuser <<EOF /usr/src/app/ecosystem.config.js
@@ -73,5 +137,16 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 # Mudar para o usuário não-root
 USER appuser
 
+# Criar script de inicialização
+COPY --chown=appuser:appuser <<EOF /usr/src/app/start.sh
+#!/bin/sh
+echo "Executando migrações do banco de dados..."
+npm run db:migrate
+echo "Iniciando a aplicação..."
+pm2-runtime start ecosystem.config.js
+EOF
+
+RUN chmod +x /usr/src/app/start.sh
+
 # Iniciar a aplicação
-CMD ["pm2-runtime", "start", "ecosystem.config.js"]
+CMD ["/usr/src/app/start.sh"]
