@@ -60,7 +60,14 @@ fi
 
 # Executar o script SQL para criar extensões e tabelas iniciais
 log "Executando script SQL para criar extensões..."
-PGPASSWORD=$DB_PASS psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f /usr/src/app/create_tables.sql
+
+# Verificar se a tabela Companies existe antes de executar o script
+if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'Companies');" | grep -q t; then
+    log "Tabelas já existem, pulando criação..."
+else
+    log "Criando tabelas..."
+    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /usr/src/app/create_tables.sql
+fi
 
 # Executar migrações
 log "Executando migrações do Sequelize..."
@@ -107,7 +114,16 @@ echo "ready" > /usr/src/app/healthcheck.txt
 log "Iniciando servidor Node.js..."
 if [ "$NODE_ENV" = "production" ]; then
     log "Modo de produção detectado. Usando PM2 para gerenciar o processo."
-    pm2-runtime start dist/index.js
+
+    # Verificar se o arquivo server.js existe
+    if [ ! -f "/usr/src/app/dist/server.js" ]; then
+        error "Arquivo server.js não encontrado em /usr/src/app/dist/"
+        ls -la /usr/src/app/dist/
+        exit 1
+    fi
+
+    # Iniciar com PM2
+    exec pm2-runtime start /usr/src/app/dist/server.js
 else
     log "Modo de desenvolvimento detectado. Iniciando com Node."
     node dist/index.js
