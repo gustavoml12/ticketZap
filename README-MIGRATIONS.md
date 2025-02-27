@@ -10,10 +10,32 @@ O sistema está configurado para executar migrações automaticamente durante a 
 2. Cria o arquivo `config.json` para o Sequelize
 3. Verifica se o banco de dados está acessível
 4. Verifica se a tabela `Settings` já existe
-5. Se a tabela não existir, executa as migrações com `npx sequelize-cli db:migrate`
-6. Inicia a aplicação com PM2
+5. Verifica outras tabelas essenciais como `Users` e `Companies`
+6. Se as tabelas não existirem, executa as migrações com `npx sequelize-cli db:migrate`
+7. Inicia a aplicação com PM2
 
 Isso garante que as migrações só sejam executadas quando necessário, evitando resetar o banco de dados a cada atualização.
+
+## Verificação do Banco de Dados
+
+Um novo script `verify_database.sh` foi adicionado para ajudar a diagnosticar problemas com o banco de dados. Este script:
+
+1. Verifica a conexão com o servidor PostgreSQL
+2. Testa a autenticação no banco de dados
+3. Verifica a existência de tabelas essenciais
+4. Verifica se as extensões PostgreSQL necessárias estão instaladas
+5. Verifica se existe um usuário administrador
+6. Oferece opções para corrigir problemas encontrados
+
+Para usar este script:
+
+```bash
+# Definir a variável DATABASE_URL (ou o script solicitará interativamente)
+export DATABASE_URL=postgres://usuario:senha@host:5432/banco
+
+# Executar o script
+./verify_database.sh
+```
 
 ## Solução Manual para Problemas de Migração
 
