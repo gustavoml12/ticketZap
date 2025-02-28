@@ -86,9 +86,10 @@ npx sequelize-cli db:migrate
 # Criar usuário admin padrão se as variáveis estiverem definidas
 if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME" ]; then
     log "Criando usuário admin padrão..."
+    cd /usr/src/app
     node -e "
         const { User } = require('./dist/models');
-        const bcrypt = require('bcrypt');
+        const bcrypt = require('bcryptjs');
         
         async function createAdmin() {
             try {
@@ -99,7 +100,7 @@ if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME"
                         name: process.env.ADMIN_NAME,
                         email: process.env.ADMIN_EMAIL,
                         password: bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10),
-                        role: 'admin',
+                        profile: 'admin',
                         active: true
                     });
                     console.log('Usuário admin criado com sucesso.');
