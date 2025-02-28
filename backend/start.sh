@@ -88,11 +88,11 @@ if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME"
     log "Criando usuário admin padrão..."
     cd /usr/src/app
     node -e "
-        const { User } = require('./dist/models');
-        const bcrypt = require('bcryptjs');
-        
         async function createAdmin() {
             try {
+                const { User } = require('./dist/models/User');
+                const bcrypt = require('bcryptjs');
+                
                 const existingAdmin = await User.findOne({ where: { email: process.env.ADMIN_EMAIL } });
                 
                 if (!existingAdmin) {

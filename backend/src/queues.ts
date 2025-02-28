@@ -84,6 +84,23 @@ async function handleSendMessage(job) {
 
 async function handleVerifySchedules() {
   try {
+    // Primeiro verifica se existem agendamentos pendentes
+    const pendingCount = await Schedule.count({
+      where: {
+        status: "PENDENTE",
+        sendAt: {
+          [Op.gte]: moment().format("YYYY-MM-DD HH:mm:ss"),
+          [Op.lte]: moment().add("30", "seconds").format("YYYY-MM-DD HH:mm:ss")
+        }
+      }
+    });
+
+    // Se não houver agendamentos pendentes, retorna silenciosamente
+    if (pendingCount === 0) {
+      return;
+    }
+
+    // Se houver agendamentos, busca os detalhes
     const schedules = await Schedule.findAll({
       where: {
         status: "PENDENTE",
@@ -94,21 +111,28 @@ async function handleVerifySchedules() {
       },
       include: [{ model: Contact, as: "contact" }]
     });
-
+    
     const count = schedules.length;
     
     if (count > 0) {
-      schedules.map(async schedule => {
-        await schedule.update({
-          status: "AGENDADA"
-        });
-        sendScheduledMessages.add(
-          "SendMessage",
-          { schedule },
-          { delay: 40000 }
-        );
-        logger.info(`Disparo agendado para: ${schedule.contact.name}`);
-      });
+      await Promise.all(schedules.map(async schedule => {
+        try {
+          await schedule.update({
+            status: "AGENDADA"
+          });
+          await sendScheduledMessages.add(
+            "SendMessage",
+            { schedule },
+            { delay: 40000 }
+          );
+          logger.info(`Disparo agendado para: ${schedule.contact.name}`);
+        } catch (err) {
+          logger.error("Erro ao processar agendamento:", {
+            scheduleId: schedule.id,
+            error: err.message
+          });
+        }
+      }));
     }
   } catch (e: unknown) {
     Sentry.captureException(e);
@@ -117,7 +141,7 @@ async function handleVerifySchedules() {
       stack: (e as Error).stack,
       details: e
     });
-    throw e;
+    // Não lançar o erro para evitar que o processo reinicie
   }
 }
 
