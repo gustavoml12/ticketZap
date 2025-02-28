@@ -81,10 +81,18 @@ fi
 
 log "Executando migrações do Sequelize..."
 cd /usr/src/app
-npx sequelize-cli db:migrate
+
+# Forçar execução de todas as migrações em ordem
+log "Revertendo migrações anteriores..."
+npx sequelize-cli db:migrate:undo:all --debug
+
+log "Executando todas as migrações..."
+npx sequelize-cli db:migrate --debug
+
+log "Migrações concluídas"
 
 # Aguardar um pouco para garantir que as migrações foram aplicadas
-sleep 2
+sleep 5
 
 # Criar usuário admin padrão se as variáveis estiverem definidas
 if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME" ]; then
