@@ -53,23 +53,23 @@ class Schedule extends Model<Schedule> {
   @Column(DataType.STRING)
   status: string;
 
-  @CreatedAt
-  createdAt: Date;
-
-  @UpdatedAt
-  updatedAt: Date;
-
-  @BelongsTo(() => Contact, "contactId")
+  @BelongsTo(() => Contact)
   contact: Contact;
-
-  @BelongsTo(() => Ticket)
-  ticket: Ticket;
 
   @BelongsTo(() => User)
   user: User;
 
   @BelongsTo(() => Company)
   company: Company;
+
+  @BelongsTo(() => Ticket)
+  ticket: Ticket;
+
+  @CreatedAt
+  createdAt: Date;
+
+  @UpdatedAt
+  updatedAt: Date;
 }
 
 export default Schedule;

@@ -84,10 +84,9 @@ async function handleSendMessage(job) {
 
 async function handleVerifySchedules() {
   try {
-    const { count, rows: schedules } = await Schedule.findAndCountAll({
+    const schedules = await Schedule.findAll({
       where: {
         status: "PENDENTE",
-        sentAt: null,
         sendAt: {
           [Op.gte]: moment().format("YYYY-MM-DD HH:mm:ss"),
           [Op.lte]: moment().add("30", "seconds").format("YYYY-MM-DD HH:mm:ss")
@@ -95,6 +94,9 @@ async function handleVerifySchedules() {
       },
       include: [{ model: Contact, as: "contact" }]
     });
+
+    const count = schedules.length;
+    
     if (count > 0) {
       schedules.map(async schedule => {
         await schedule.update({
