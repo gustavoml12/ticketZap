@@ -90,10 +90,37 @@ if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME"
     node -e "
         async function createAdmin() {
             try {
-                const { User } = require('./dist/models/User');
+                const { Sequelize } = require('sequelize');
                 const bcrypt = require('bcryptjs');
                 
-                const existingAdmin = await User.findOne({ where: { email: process.env.ADMIN_EMAIL } });
+                // Configurar Sequelize
+                const sequelize = new Sequelize(process.env.DATABASE_URL, {
+                    dialect: 'postgres',
+                    logging: false,
+                    define: {
+                        timestamps: true
+                    }
+                });
+
+                // Definir modelo User
+                const User = sequelize.define('User', {
+                    name: Sequelize.STRING,
+                    email: Sequelize.STRING,
+                    password: Sequelize.STRING,
+                    profile: Sequelize.STRING,
+                    active: Sequelize.BOOLEAN
+                });
+                
+                // Testar conexão
+                await sequelize.authenticate();
+                console.log('Conexão estabelecida com sucesso.');
+                
+                const existingAdmin = await User.findOne({ 
+                    where: { 
+                        email: process.env.ADMIN_EMAIL,
+                        profile: 'admin'
+                    } 
+                });
                 
                 if (!existingAdmin) {
                     await User.create({
@@ -109,23 +136,18 @@ if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME"
                 }
             } catch (error) {
                 console.error('Erro ao criar usuário admin:', error);
+                if (error.stack) {
+                    console.error('Stack trace:', error.stack);
+                }
             }
         }
         
-        createAdmin();
+        createAdmin().catch(error => {
+            console.error('Erro ao executar createAdmin:', error);
+            process.exit(1);
+        });
     "
 fi
-
-# Iniciar Redis em background
-log "Iniciando Redis..."
-redis-server --daemonize yes
-
-# Verificar se o Redis está rodando
-until redis-cli ping > /dev/null 2>&1; do
-    log "Aguardando Redis iniciar..."
-    sleep 1
-done
-log "Redis está rodando."
 
 # Criar arquivo de health check
 log "Criando arquivo de health check..."
@@ -136,18 +158,10 @@ touch /usr/src/app/public/health-check
 log "Iniciando servidor Node.js..."
 if [ "$NODE_ENV" = "production" ]; then
     log "Modo de produção detectado. Usando PM2 para gerenciar o processo."
-
-    # Verificar se o arquivo server.js existe
-    if [ ! -f "/usr/src/app/dist/server.js" ]; then
-        error "Arquivo server.js não encontrado em /usr/src/app/dist/"
-        ls -la /usr/src/app/dist/
-        exit 1
-    fi
-
-    # Iniciar com PM2
-    exec pm2-runtime start /usr/src/app/dist/server.js
+    cd /usr/src/app
+    pm2 start ecosystem.config.js --no-daemon
 else
     log "Modo de desenvolvimento detectado. Iniciando com Node."
     cd /usr/src/app
-    node dist/index.js
+    node dist/server.js
 fi
