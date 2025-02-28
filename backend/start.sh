@@ -83,6 +83,9 @@ log "Executando migrações do Sequelize..."
 cd /usr/src/app
 npx sequelize-cli db:migrate
 
+# Aguardar um pouco para garantir que as migrações foram aplicadas
+sleep 2
+
 # Criar usuário admin padrão se as variáveis estiverem definidas
 if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME" ]; then
     log "Criando usuário admin padrão..."
