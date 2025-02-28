@@ -61,15 +61,24 @@ fi
 # Executar o script SQL para criar extensões e tabelas iniciais
 log "Executando script SQL para criar extensões..."
 
-# Verificar se a tabela Companies existe antes de executar o script
-if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'Companies');" | grep -q t; then
-    log "Tabelas já existem, pulando criação..."
-else
-    log "Criando tabelas..."
+# Verificar se todas as tabelas necessárias existem
+REQUIRED_TABLES=("Companies" "Users" "Settings" "UserSocketSessions" "Whatsapps" "Contacts" "Queues" "Tickets" "Messages" "QueueOptions" "Plans" "Invoices")
+MISSING_TABLES=false
+
+for TABLE in "${REQUIRED_TABLES[@]}"; do
+    if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '$TABLE');" | grep -q t; then
+        log "Tabela $TABLE não existe"
+        MISSING_TABLES=true
+    fi
+done
+
+if [ "$MISSING_TABLES" = true ]; then
+    log "Algumas tabelas estão faltando. Criando todas as tabelas..."
     psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /usr/src/app/create_tables.sql
+else
+    log "Todas as tabelas já existem"
 fi
 
-# Executar migrações
 log "Executando migrações do Sequelize..."
 cd /usr/src/app
 npx sequelize-cli db:migrate

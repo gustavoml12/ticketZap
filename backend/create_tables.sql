@@ -195,3 +195,18 @@ ALTER TABLE "Companies" ADD COLUMN IF NOT EXISTS "planId" INTEGER REFERENCES "Pl
 
 -- Atualizar o planId da empresa padrão
 UPDATE "Companies" SET "planId" = 1 WHERE "id" = 1 AND "planId" IS NULL;
+
+-- Criar tabela Invoices
+CREATE TABLE IF NOT EXISTS "Invoices" (
+  "id" SERIAL PRIMARY KEY,
+  "detail" TEXT,
+  "status" VARCHAR(255) NOT NULL,
+  "value" DECIMAL(10,2) NOT NULL,
+  "txId" VARCHAR(255),
+  "payGw" VARCHAR(255),
+  "payGwData" TEXT,
+  "dueDate" TIMESTAMP WITH TIME ZONE,
+  "companyId" INTEGER REFERENCES "Companies"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+  "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL
+);
