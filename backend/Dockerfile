@@ -39,8 +39,9 @@ RUN apk add --no-cache \
 RUN addgroup -S appuser && \
     adduser -S appuser -G appuser
 
-# Criar diretórios necessários primeiro
-RUN mkdir -p /usr/src/app/{uploads,private,logs,config,dist,public}
+# Criar diretórios necessários e configurar Sequelize antes de mudar permissões
+RUN mkdir -p /usr/src/app/{uploads,private,logs,config,dist,public} && \
+    echo "{\"development\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"test\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"production\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}}}" > /usr/src/app/config/config.json
 
 # Copiar apenas os arquivos necessários da etapa de build
 COPY --from=build /usr/src/app/dist ./dist
@@ -49,13 +50,10 @@ COPY --from=build /usr/src/app/package.json ./
 COPY --from=build /usr/src/app/start.sh ./
 COPY --from=build /usr/src/app/public ./public
 
-# Definir permissões
+# Definir permissões depois de copiar todos os arquivos
 RUN chmod +x /usr/src/app/start.sh && \
     chown -R appuser:appuser /usr/src/app && \
     chmod -R 755 /usr/src/app
-
-# Configurar Sequelize
-RUN echo "{\"development\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"test\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"production\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}}}" > /usr/src/app/config/config.json
 
 # Configurar PM2
 RUN echo "module.exports = {apps:[{name:\"backend\",script:\"./dist/server.js\",instances:1,exec_mode:\"fork\",watch:false,max_memory_restart:\"1G\",env:{NODE_ENV:\"production\"}}]}" > /usr/src/app/ecosystem.config.js
