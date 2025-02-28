@@ -39,6 +39,9 @@ RUN apk add --no-cache \
 RUN addgroup -S appuser && \
     adduser -S appuser -G appuser
 
+# Criar diretórios necessários primeiro
+RUN mkdir -p /usr/src/app/{uploads,private,logs,config,dist,public}
+
 # Copiar apenas os arquivos necessários da etapa de build
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
@@ -46,9 +49,8 @@ COPY --from=build /usr/src/app/package.json ./
 COPY --from=build /usr/src/app/start.sh ./
 COPY --from=build /usr/src/app/public ./public
 
-# Criar diretórios necessários e definir permissões
-RUN mkdir -p /usr/src/app/{uploads,private,logs,config} && \
-    chmod +x /usr/src/app/start.sh && \
+# Definir permissões
+RUN chmod +x /usr/src/app/start.sh && \
     chown -R appuser:appuser /usr/src/app && \
     chmod -R 755 /usr/src/app
 

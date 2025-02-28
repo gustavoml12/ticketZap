@@ -1,0 +1,12 @@
+FROM adminer:latest
+
+# Configurações do ambiente
+ENV ADMINER_DEFAULT_SERVER=u80ggksoo4k40ccwsg8ww4k0
+ENV ADMINER_DEFAULT_DB=postgres
+ENV ADMINER_DEFAULT_USER=postgres
+ENV ADMINER_DEFAULT_PASSWORD=sBRFcX3M3z6SY0W5V6Jz42yzBOlM4qiBDXx9pkcoRb1qOTvuF0KdxF8M3YuGwpsJ
+
+# Expõe a porta 8080
+EXPOSE 8080
+
+

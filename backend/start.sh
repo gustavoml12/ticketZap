@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script para inicialização da aplicação TicketZap
-# Este script verifica a conexão com o banco de dados, executa migrações e inicia a aplicação
+# Este script verifica a conexão com o banco de dados e inicia a aplicação
 
 # Cores para melhor visualização
 RED='\033[0;31m'
@@ -42,126 +42,13 @@ DB_HOST=$(echo $DATABASE_URL | sed -n 's/^postgres:\/\/[^:]*:[^@]*@\([^:]*\):.*/
 DB_PORT=$(echo $DATABASE_URL | sed -n 's/^postgres:\/\/[^:]*:[^@]*@[^:]*:\([^/]*\)\/.*/\1/p')
 DB_NAME=$(echo $DATABASE_URL | sed -n 's/^postgres:\/\/[^:]*:[^@]*@[^:]*:[^/]*\/\(.*\)$/\1/p')
 
-log "Aguardando conexão com o PostgreSQL..."
+log "Verificando conexão com o PostgreSQL..."
 until PGPASSWORD=$DB_PASS psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c '\q'; do
     log "PostgreSQL não está disponível ainda - aguardando..."
     sleep 2
 done
 
 log "Conexão com PostgreSQL estabelecida."
-
-# Verificar se o banco de dados existe, se não, criar
-DB_EXISTS=$(PGPASSWORD=$DB_PASS psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $DB_NAME)
-if [ -z "$DB_EXISTS" ]; then
-    log "Banco de dados $DB_NAME não existe. Criando..."
-    PGPASSWORD=$DB_PASS psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "CREATE DATABASE \"$DB_NAME\";"
-    log "Banco de dados $DB_NAME criado com sucesso."
-fi
-
-# Executar o script SQL para criar extensões e tabelas iniciais
-log "Executando script SQL para criar extensões..."
-
-# Verificar se todas as tabelas necessárias existem
-REQUIRED_TABLES=("Companies" "Users" "Settings" "UserSocketSessions" "Whatsapps" "Contacts" "Queues" "Tickets" "Messages" "QueueOptions" "Plans" "Invoices" "Schedules")
-MISSING_TABLES=false
-
-for TABLE in "${REQUIRED_TABLES[@]}"; do
-    if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tc "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '$TABLE');" | grep -q t; then
-        log "Tabela $TABLE não existe"
-        MISSING_TABLES=true
-    fi
-done
-
-if [ "$MISSING_TABLES" = true ]; then
-    log "Algumas tabelas estão faltando. Criando todas as tabelas..."
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /usr/src/app/create_tables.sql
-else
-    log "Todas as tabelas já existem"
-fi
-
-log "Executando migrações do Sequelize..."
-cd /usr/src/app
-
-# Executar migrações pendentes
-log "Executando migrações pendentes..."
-npx sequelize-cli db:migrate --debug
-
-# Se ainda houver erro, tentar executar a migração específica
-if [ $? -ne 0 ]; then
-    log "Tentando executar migração específica..."
-    npx sequelize-cli db:migrate --name 20250228-add-password-to-users.ts --debug
-fi
-
-log "Migrações concluídas"
-
-# Aguardar um pouco para garantir que as migrações foram aplicadas
-sleep 5
-
-# Criar usuário admin padrão se as variáveis estiverem definidas
-if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME" ]; then
-    log "Criando usuário admin padrão..."
-    cd /usr/src/app
-    node -e "
-        async function createAdmin() {
-            try {
-                const { Sequelize } = require('sequelize');
-                const bcrypt = require('bcryptjs');
-                
-                // Configurar Sequelize
-                const sequelize = new Sequelize(process.env.DATABASE_URL, {
-                    dialect: 'postgres',
-                    logging: false,
-                    define: {
-                        timestamps: true
-                    }
-                });
-
-                // Definir modelo User
-                const User = sequelize.define('User', {
-                    name: Sequelize.STRING,
-                    email: Sequelize.STRING,
-                    password: Sequelize.STRING,
-                    profile: Sequelize.STRING,
-                    active: Sequelize.BOOLEAN
-                });
-                
-                // Testar conexão
-                await sequelize.authenticate();
-                console.log('Conexão estabelecida com sucesso.');
-                
-                const existingAdmin = await User.findOne({ 
-                    where: { 
-                        email: process.env.ADMIN_EMAIL,
-                        profile: 'admin'
-                    } 
-                });
-                
-                if (!existingAdmin) {
-                    await User.create({
-                        name: process.env.ADMIN_NAME,
-                        email: process.env.ADMIN_EMAIL,
-                        password: bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10),
-                        profile: 'admin',
-                        active: true
-                    });
-                    console.log('Usuário admin criado com sucesso.');
-                } else {
-                    console.log('Usuário admin já existe.');
-                }
-            } catch (error) {
-                console.error('Erro ao criar usuário admin:', error);
-                if (error.stack) {
-                    console.error('Stack trace:', error.stack);
-                }
-            }
-        }
-        
-        createAdmin().catch(error => {
-            console.error('Erro ao executar createAdmin:', error);
-            process.exit(1);
-        });
-    "
-fi
 
 # Criar arquivo de health check
 log "Criando arquivo de health check..."
