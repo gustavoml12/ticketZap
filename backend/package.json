@@ -2,9 +2,9 @@
   "name": "ticketz-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "build": "tsc --sourceMap false",
+    "build": "tsc --sourceMap false && cp -r src/config dist/ && cp -r src/models dist/",
     "devbuild": "tsc --sourceMap true",
     "watch": "tsc -w",
     "start": "node dist/server.js",

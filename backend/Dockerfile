@@ -55,13 +55,13 @@ COPY --from=build /usr/src/app/prepare-migrations.js ./prepare-migrations.js
 COPY --from=build /usr/src/app/create_tables.sql ./create_tables.sql
 COPY --from=build /usr/src/app/start.sh ./start.sh
 COPY --from=build /usr/src/app/dist/server.js ./dist/server.js
+COPY --from=build /usr/src/app/public ./public
 
 # Verificar conteúdo do diretório dist
 RUN ls -la /usr/src/app/dist || echo "Diretório dist vazio ou não existe"
 
 # Criar diretórios para mídia e definir permissões
-RUN mkdir -p /usr/src/app/public && \
-    mkdir -p /usr/src/app/uploads && \
+RUN mkdir -p /usr/src/app/uploads && \
     mkdir -p /usr/src/app/private && \
     mkdir -p /usr/src/app/logs && \
     mkdir -p /usr/src/app/config && \
