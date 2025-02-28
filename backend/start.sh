@@ -115,11 +115,23 @@ if [ ! -z "$ADMIN_EMAIL" ] && [ ! -z "$ADMIN_PASSWORD" ] && [ ! -z "$ADMIN_NAME"
     "
 fi
 
+# Iniciar Redis em background
+log "Iniciando Redis..."
+redis-server --daemonize yes
+
+# Verificar se o Redis está rodando
+until redis-cli ping > /dev/null 2>&1; do
+    log "Aguardando Redis iniciar..."
+    sleep 1
+done
+log "Redis está rodando."
+
 # Criar arquivo de health check
 log "Criando arquivo de health check..."
-echo "ready" > /usr/src/app/healthcheck.txt
+mkdir -p /usr/src/app/public
+touch /usr/src/app/public/health-check
 
-# Iniciar a aplicação
+# Iniciar servidor Node.js
 log "Iniciando servidor Node.js..."
 if [ "$NODE_ENV" = "production" ]; then
     log "Modo de produção detectado. Usando PM2 para gerenciar o processo."
@@ -135,5 +147,6 @@ if [ "$NODE_ENV" = "production" ]; then
     exec pm2-runtime start /usr/src/app/dist/server.js
 else
     log "Modo de desenvolvimento detectado. Iniciando com Node."
+    cd /usr/src/app
     node dist/index.js
 fi
