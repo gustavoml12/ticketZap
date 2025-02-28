@@ -82,12 +82,15 @@ fi
 log "Executando migrações do Sequelize..."
 cd /usr/src/app
 
-# Forçar execução de todas as migrações em ordem
-log "Revertendo migrações anteriores..."
-npx sequelize-cli db:migrate:undo:all --debug
-
-log "Executando todas as migrações..."
+# Executar migrações pendentes
+log "Executando migrações pendentes..."
 npx sequelize-cli db:migrate --debug
+
+# Se ainda houver erro, tentar executar a migração específica
+if [ $? -ne 0 ]; then
+    log "Tentando executar migração específica..."
+    npx sequelize-cli db:migrate --name 20250228-add-password-to-users.ts --debug
+fi
 
 log "Migrações concluídas"
 
