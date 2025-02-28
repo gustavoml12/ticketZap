@@ -62,7 +62,7 @@ fi
 log "Executando script SQL para criar extensões..."
 
 # Verificar se todas as tabelas necessárias existem
-REQUIRED_TABLES=("Companies" "Users" "Settings" "UserSocketSessions" "Whatsapps" "Contacts" "Queues" "Tickets" "Messages" "QueueOptions" "Plans" "Invoices")
+REQUIRED_TABLES=("Companies" "Users" "Settings" "UserSocketSessions" "Whatsapps" "Contacts" "Queues" "Tickets" "Messages" "QueueOptions" "Plans" "Invoices" "Schedules")
 MISSING_TABLES=false
 
 for TABLE in "${REQUIRED_TABLES[@]}"; do
