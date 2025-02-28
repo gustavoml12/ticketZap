@@ -73,7 +73,11 @@ async function handleSendMessage(job) {
     await SendMessage(whatsapp, messageData);
   } catch (e: unknown) {
     Sentry.captureException(e);
-    logger.error("MessageQueue -> SendMessage: error", (e as Error).message);
+    logger.error("MessageQueue -> SendMessage: error", {
+      error: (e as Error).message,
+      stack: (e as Error).stack,
+      details: e
+    });
     throw e;
   }
 }
@@ -106,7 +110,11 @@ async function handleVerifySchedules() {
     }
   } catch (e: unknown) {
     Sentry.captureException(e);
-    logger.error("SendScheduledMessage -> Verify: error", (e as Error).message);
+    logger.error("SendScheduledMessage -> Verify: error", {
+      error: (e as Error).message,
+      stack: (e as Error).stack,
+      details: e
+    });
     throw e;
   }
 }
@@ -152,10 +160,13 @@ async function handleSendScheduledMessage(job) {
     await scheduleRecord?.update({
       status: "ERRO"
     });
-    logger.error(
-      "SendScheduledMessage -> SendMessage: error",
-      (e as Error).message
-    );
+    logger.error("SendScheduledMessage -> SendMessage: error", {
+      error: (e as Error).message,
+      stack: (e as Error).stack,
+      scheduleId: schedule?.id,
+      contactName: schedule?.contact?.name,
+      details: e
+    });
     throw e;
   }
 }
