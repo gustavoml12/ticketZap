@@ -40,7 +40,12 @@ RUN addgroup -S appuser && \
     adduser -S appuser -G appuser
 
 # Criar diretórios necessários e configurar Sequelize antes de mudar permissões
-RUN mkdir -p /usr/src/app/{uploads,private,logs,config,dist,public} && \
+RUN mkdir -p /usr/src/app/uploads && \
+    mkdir -p /usr/src/app/private && \
+    mkdir -p /usr/src/app/logs && \
+    mkdir -p /usr/src/app/config && \
+    mkdir -p /usr/src/app/dist && \
+    mkdir -p /usr/src/app/public && \
     echo "{\"development\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"test\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"production\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}}}" > /usr/src/app/config/config.json
 
 # Copiar apenas os arquivos necessários da etapa de build
