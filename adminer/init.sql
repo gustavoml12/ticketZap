@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS "Messages" (
     FOREIGN KEY ("companyId") REFERENCES "Companies"("id") ON DELETE CASCADE
 );
 
--- Tabela Whatsapps
+-- Tabela Whatsapps (atualizada com novos campos)
 CREATE TABLE IF NOT EXISTS "Whatsapps" (
     "id" SERIAL PRIMARY KEY,
     "name" VARCHAR(255) NOT NULL,
@@ -82,11 +82,25 @@ CREATE TABLE IF NOT EXISTS "Whatsapps" (
     "queueId" INTEGER,
     "companyId" INTEGER,
     "greetingMessage" TEXT,
+    "farewellMessage" TEXT,
     "complationMessage" TEXT,
     "outOfHoursMessage" TEXT,
+    "ratingMessage" TEXT,
+    "transferMessage" TEXT,
     "status" VARCHAR(255),
     "isDefault" BOOLEAN NOT NULL DEFAULT false,
     "retries" INTEGER DEFAULT 0,
+    "session" TEXT,
+    "qrcode" TEXT,
+    "battery" TEXT,
+    "plugged" BOOLEAN,
+    "provider" VARCHAR(255),
+    "token" TEXT,
+    "facebookUserId" VARCHAR(255),
+    "facebookUserToken" TEXT,
+    "facebookPageUserId" VARCHAR(255),
+    "tokenMeta" TEXT,
+    "channel" VARCHAR(255),
     "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
     "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
     FOREIGN KEY ("companyId") REFERENCES "Companies"("id") ON DELETE CASCADE
@@ -185,6 +199,38 @@ CREATE TABLE IF NOT EXISTS "Schedules" (
     FOREIGN KEY ("ticketId") REFERENCES "Tickets"("id") ON DELETE SET NULL
 );
 
+-- Tabela Campaigns
+CREATE TABLE IF NOT EXISTS "Campaigns" (
+    "id" SERIAL PRIMARY KEY,
+    "name" VARCHAR(255) NOT NULL,
+    "status" VARCHAR(255) NOT NULL DEFAULT 'PROGRAMADA',
+    "scheduledAt" TIMESTAMP WITH TIME ZONE,
+    "companyId" INTEGER,
+    "userId" INTEGER,
+    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+    FOREIGN KEY ("companyId") REFERENCES "Companies"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE CASCADE
+);
+
+-- Tabela WhatsappQueues (relacionamento N:N entre Whatsapps e Queues)
+CREATE TABLE IF NOT EXISTS "WhatsappQueues" (
+    "whatsappId" INTEGER NOT NULL,
+    "queueId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+    PRIMARY KEY ("whatsappId", "queueId"),
+    FOREIGN KEY ("whatsappId") REFERENCES "Whatsapps"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("queueId") REFERENCES "Queues"("id") ON DELETE CASCADE
+);
+
+-- Adicionando índices para WhatsappQueues
+CREATE INDEX IF NOT EXISTS "idx_whatsappqueues_whatsappId" ON "WhatsappQueues"("whatsappId");
+CREATE INDEX IF NOT EXISTS "idx_whatsappqueues_queueId" ON "WhatsappQueues"("queueId");
+
+CREATE INDEX IF NOT EXISTS "idx_campaigns_status" ON "Campaigns"("status");
+CREATE INDEX IF NOT EXISTS "idx_campaigns_scheduledAt" ON "Campaigns"("scheduledAt");
+
 -- Índices para melhor performance
 CREATE INDEX IF NOT EXISTS "idx_tickets_status" ON "Tickets"("status");
 CREATE INDEX IF NOT EXISTS "idx_tickets_contactId" ON "Tickets"("contactId");
@@ -200,13 +246,12 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO "Users" ("name", "email", "passwordHash", "profile", "super", "companyId", "createdAt", "updatedAt")
 VALUES (
-    'Administrador',
+    'Admin',
     'admin@admin.com',
-    '$2a$08$WzQwEmxc0.GXtGos.Qv.pe3/YoZJqeeFPRNyOSwHUW5gTCOvXASQi', -- senha: admin
+    '$2a$08$WG6GhHPpAWk6HrKD0PQqkuDZwLahH1X4HQh5TGNhO6F4TvQSJcG4.',
     'admin',
     true,
-    (SELECT "id" FROM "Companies" WHERE "name" = 'Empresa Padrão' LIMIT 1),
+    1,
     NOW(),
     NOW()
-)
-ON CONFLICT DO NOTHING;
+) ON CONFLICT DO NOTHING;

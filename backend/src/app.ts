@@ -38,6 +38,12 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(Sentry.Handlers.requestHandler());
 
+// Log all requests
+app.use((req: Request, res: Response, next: NextFunction) => {
+  logger.info(`${req.method} ${req.originalUrl} - Base URL: ${baseUrl}, Path: ${req.path}`);
+  next();
+});
+
 // Configurar para retornar JSON em vez de HTML para erros
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
@@ -51,16 +57,21 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 // Rota raiz - retorna informações básicas
 app.get("/", version);
+app.get("/api", version);
 
 // Health check endpoint
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: 'ok', baseUrl });
-});
-
-// Log all requests
-app.use((req: Request, res: Response, next: NextFunction) => {
-  logger.info(`${req.method} ${req.path} - Base URL: ${baseUrl}`);
-  next();
+app.get(["/health", "/api/health"], (req, res) => {
+  res.status(200).json({ 
+    status: 'ok', 
+    baseUrl,
+    path: req.path,
+    originalUrl: req.originalUrl,
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      FRONTEND_URL: process.env.FRONTEND_URL,
+      BASE_URL: process.env.BASE_URL
+    }
+  });
 });
 
 // Servir arquivos estáticos

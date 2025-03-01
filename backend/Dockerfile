@@ -72,14 +72,18 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=3 \
 ENV NODE_ENV=production \
     PORT=3000 \
     FRONTEND_URL=${COOLIFY_FQDN} \
-    BASE_URL=${COOLIFY_URL}
+    BASE_URL=/api
 
 # Adicionar labels para o Traefik
 LABEL traefik.enable=true \
-      traefik.http.routers.backend.rule="PathPrefix(`/api`)" \
-      traefik.http.services.backend.loadbalancer.server.port=3000 \
-      traefik.http.middlewares.backend-strip.stripprefix.prefixes=/api \
-      traefik.http.routers.backend.middlewares=backend-strip@docker
+      traefik.http.middlewares.gzip.compress=true \
+      traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https \
+      traefik.http.routers.backend.entryPoints=http,https \
+      traefik.http.routers.backend.rule="Host(`ticket.ebnez.com.br`) && PathPrefix(`/api/`)" \
+      traefik.http.routers.backend.middlewares=gzip \
+      traefik.http.routers.backend.tls=true \
+      traefik.http.routers.backend.tls.certresolver=letsencrypt \
+      traefik.http.services.backend.loadbalancer.server.port=3000
 
 USER appuser
 
