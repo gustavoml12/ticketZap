@@ -144,24 +144,34 @@
 		fetch('/config.json')
 			.then(response => response.json())
 			.then(config => {
-				const backendUrl = config.BACKEND_URL;
-				
-				fetch(backendUrl + "public-settings/primaryColor" + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
-					.then(response => response.json())
+				// Carregar a cor primária
+				fetch('/api/public-settings/primaryColor' + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
+					.then(response => {
+						if (!response.ok) {
+							throw new Error('Network response was not ok');
+						}
+						return response.json();
+					})
 					.then(data => {
 						const root = document.documentElement;
 						root.style.setProperty('--primary', data);
 					})
 					.catch(error => console.error('Error loading primary color:', error));
 				
-				fetch(backendUrl + "public-settings/appLogo" + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
-					.then(response => response.json())
+				// Carregar o logo
+				fetch('/api/public-settings/appLogo' + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
+					.then(response => {
+						if (!response.ok) {
+							throw new Error('Network response was not ok');
+						}
+						return response.json();
+					})
 					.then(data => {
 						if (!data) {
 							return;
 						}
 						const appLogo = document.getElementById('app-logo');
-						appLogo.src = backendUrl + "public/" + data;
+						appLogo.src = '/api/public/' + data;
 						const appLogoDiv = document.getElementById('app-logo-div');
 						appLogoDiv.style.display = "block";
 					})
