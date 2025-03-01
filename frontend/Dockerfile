@@ -7,10 +7,10 @@ RUN npm install
 COPY . .
 
 # Build with environment variables
-ARG REACT_APP_BACKEND_URL=https://ticket.ebnez.com.br/api
+ARG REACT_APP_BACKEND_URL=https://ticket.ebnez.com.br/api/
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 ENV NODE_ENV=production
-RUN echo '{"REACT_APP_BACKEND_URL":"'${REACT_APP_BACKEND_URL}'"}' > public/config.json
+RUN echo '{"BACKEND_URL":"'${REACT_APP_BACKEND_URL}'"}' > public/config.json
 RUN npm run build
 
 # Production stage
