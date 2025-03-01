@@ -33,6 +33,7 @@ RUN apk add --no-cache \
     postgresql-client \
     bash \
     redis \
+    wget \
     && npm install -g pm2
 
 # Criar usuário não-root
@@ -62,6 +63,10 @@ RUN chmod +x /usr/src/app/start.sh && \
 
 # Configurar PM2
 RUN echo "module.exports = {apps:[{name:\"backend\",script:\"./dist/server.js\",instances:1,exec_mode:\"fork\",watch:false,max_memory_restart:\"1G\",env:{NODE_ENV:\"production\"}}]}" > /usr/src/app/ecosystem.config.js
+
+# Adicionar HEALTHCHECK
+HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=3 \
+    CMD wget --spider -q http://localhost:3000/ || exit 1
 
 USER appuser
 
