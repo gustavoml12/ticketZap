@@ -116,6 +116,9 @@ CREATE TABLE IF NOT EXISTS "Queues" (
     FOREIGN KEY ("companyId") REFERENCES "Companies"("id") ON DELETE CASCADE
 );
 
+-- Adicionar coluna greetingMessage à tabela Queues
+ALTER TABLE "Queues" ADD COLUMN IF NOT EXISTS "greetingMessage" TEXT DEFAULT '';
+
 -- Tabela Settings
 CREATE TABLE IF NOT EXISTS "Settings" (
     "id" SERIAL PRIMARY KEY,

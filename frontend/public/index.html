@@ -140,42 +140,46 @@
       root.style.setProperty('--primary', themes[theme].primary);
 		}
 
+		// Função para fazer requisições
+		async function fetchWithHeaders(url, options = {}) {
+			const defaultOptions = {
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json'
+				}
+			};
+			
+			const response = await fetch(url, { ...defaultOptions, ...options });
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			return response.json();
+		}
+
 		// Carregar a configuração do backend
 		fetch('/config.json')
 			.then(response => response.json())
-			.then(config => {
-				// Carregar a cor primária
-				fetch('/api/public-settings/primaryColor' + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
-					.then(response => {
-						if (!response.ok) {
-							throw new Error('Network response was not ok');
-						}
-						return response.json();
-					})
-					.then(data => {
-						const root = document.documentElement;
-						root.style.setProperty('--primary', data);
-					})
-					.catch(error => console.error('Error loading primary color:', error));
-				
-				// Carregar o logo
-				fetch('/api/public-settings/appLogo' + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
-					.then(response => {
-						if (!response.ok) {
-							throw new Error('Network response was not ok');
-						}
-						return response.json();
-					})
-					.then(data => {
-						if (!data) {
-							return;
-						}
+			.then(async config => {
+				try {
+					// Carregar a cor primária
+					const colorUrl = `/api/public-settings/primaryColor${theme === "dark" ? "Dark" : "Light"}?token=123456`;
+					const colorData = await fetchWithHeaders(colorUrl);
+					const root = document.documentElement;
+					root.style.setProperty('--primary', colorData);
+					
+					// Carregar o logo
+					const logoUrl = `/api/public-settings/appLogo${theme === "dark" ? "Dark" : "Light"}?token=123456`;
+					const logoData = await fetchWithHeaders(logoUrl);
+					if (logoData) {
 						const appLogo = document.getElementById('app-logo');
-						appLogo.src = '/api/public/' + data;
+						appLogo.src = `/api/public/${logoData}`;
 						const appLogoDiv = document.getElementById('app-logo-div');
 						appLogoDiv.style.display = "block";
-					})
-					.catch(error => console.error('Error loading app logo:', error));
+					}
+				} catch (error) {
+					console.error('Error loading settings:', error);
+				}
 			})
 			.catch(error => console.error('Error loading config:', error));
 		
