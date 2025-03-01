@@ -39,6 +39,9 @@ RUN npm run build
 # Production stage
 FROM nginx:stable-alpine
 
+# Install wget for healthcheck
+RUN apk add --no-cache wget
+
 # Copy nginx configuration
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 RUN rm -rf /etc/nginx/conf.d/default.conf
