@@ -68,6 +68,21 @@ RUN echo "module.exports = {apps:[{name:\"backend\",script:\"./dist/server.js\",
 HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=3 \
     CMD wget --spider -q http://localhost:3000/ || exit 1
 
+# Configurar variáveis de ambiente
+ENV NODE_ENV=production \
+    PORT=3000 \
+    FRONTEND_URL=${COOLIFY_FQDN} \
+    BASE_URL=${COOLIFY_URL}
+
+# Adicionar labels para o Traefik
+LABEL traefik.enable=true \
+      traefik.http.routers.backend.rule="PathPrefix(`/api`)" \
+      traefik.http.services.backend.loadbalancer.server.port=3000 \
+      traefik.http.middlewares.backend-strip.stripprefix.prefixes=/api \
+      traefik.http.routers.backend.middlewares=backend-strip@docker
+
 USER appuser
+
+EXPOSE 3000
 
 CMD ["/usr/src/app/start.sh"]

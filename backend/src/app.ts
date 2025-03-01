@@ -19,6 +19,9 @@ Sentry.init({ dsn: process.env.SENTRY_DSN });
 
 const app = express();
 
+// Get base URL from environment or default to '/'
+const baseUrl = process.env.BASE_URL || '/';
+
 app.set("queues", {
   messageQueue,
   sendScheduledMessages
@@ -27,7 +30,7 @@ app.set("queues", {
 app.use(
   cors({
     credentials: true,
-    origin: process.env.FRONTEND_URL
+    origin: process.env.FRONTEND_URL || '*'
   })
 );
 
@@ -51,7 +54,13 @@ app.get("/", version);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({ status: 'ok', baseUrl });
+});
+
+// Log all requests
+app.use((req: Request, res: Response, next: NextFunction) => {
+  logger.info(`${req.method} ${req.path} - Base URL: ${baseUrl}`);
+  next();
 });
 
 // Servir arquivos estáticos
