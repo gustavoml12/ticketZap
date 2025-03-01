@@ -50,11 +50,6 @@ done
 
 log "Conexão com PostgreSQL estabelecida."
 
-# Criar arquivo de health check
-log "Criando arquivo de health check..."
-mkdir -p /usr/src/app/public
-touch /usr/src/app/public/health-check
-
 # Iniciar servidor Node.js
 log "Iniciando servidor Node.js..."
 if [ "$NODE_ENV" = "production" ]; then
