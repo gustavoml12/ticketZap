@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY . .
 
 # Set build arguments
-ARG REACT_APP_BACKEND_URL
+ARG REACT_APP_BACKEND_URL=https://ticket.ebnez.com.br/api
 ARG NODE_ENV=production
 ARG DISABLE_ESLINT_PLUGIN=true
 ARG GENERATE_SOURCEMAP=false
@@ -64,6 +64,17 @@ RUN mkdir -p /usr/src/app/uploads \
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD wget --spider -q http://localhost:80/ || exit 1
+
+# Add Traefik labels
+LABEL traefik.enable=true \
+      traefik.http.middlewares.gzip.compress=true \
+      traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https \
+      traefik.http.routers.frontend.entryPoints=http,https \
+      traefik.http.routers.frontend.rule="Host(`ticket.ebnez.com.br`)" \
+      traefik.http.routers.frontend.middlewares=gzip \
+      traefik.http.routers.frontend.tls=true \
+      traefik.http.routers.frontend.tls.certresolver=letsencrypt \
+      traefik.http.services.frontend.loadbalancer.server.port=80
 
 # Switch to non-root user
 USER nginx
