@@ -140,27 +140,34 @@
       root.style.setProperty('--primary', themes[theme].primary);
 		}
 
-		const backendUrl = window.location.hostname === "localhost" ? "http://localhost:3000" : "/backend";
-		const settingsBaseUrl = backendUrl + "/public-settings";
-		
-		fetch(settingsBaseUrl + "/primaryColor" + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
-		    .then(response => response.json())
-        .then(data => {
-          const root = document.documentElement;
-          root.style.setProperty('--primary', data);
-        });
-		
-		fetch(settingsBaseUrl + "/appLogo" + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
-        .then(response => response.json())
-        .then(data => {
-        	if (!data) {
-            return;
-          }
-        	const appLogo = document.getElementById('app-logo');
-          appLogo.src = backendUrl + "/public/" + data;
-          const appLogoDiv = document.getElementById('app-logo-div');
-          appLogoDiv.style.display = "block";
-        });
+		// Carregar a configuração do backend
+		fetch('/config.json')
+			.then(response => response.json())
+			.then(config => {
+				const backendUrl = config.BACKEND_URL;
+				
+				fetch(backendUrl + "public-settings/primaryColor" + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
+					.then(response => response.json())
+					.then(data => {
+						const root = document.documentElement;
+						root.style.setProperty('--primary', data);
+					})
+					.catch(error => console.error('Error loading primary color:', error));
+				
+				fetch(backendUrl + "public-settings/appLogo" + (theme === "dark" ? "Dark" : "Light") + "?token=123456")
+					.then(response => response.json())
+					.then(data => {
+						if (!data) {
+							return;
+						}
+						const appLogo = document.getElementById('app-logo');
+						appLogo.src = backendUrl + "public/" + data;
+						const appLogoDiv = document.getElementById('app-logo-div');
+						appLogoDiv.style.display = "block";
+					})
+					.catch(error => console.error('Error loading app logo:', error));
+			})
+			.catch(error => console.error('Error loading config:', error));
 		
 		const progressBar = document.getElementById('progress-bar');
 		const interval = setInterval(() => {
