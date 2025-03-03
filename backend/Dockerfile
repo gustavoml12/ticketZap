@@ -40,14 +40,13 @@ RUN apk add --no-cache \
 RUN addgroup -S appuser && \
     adduser -S appuser -G appuser
 
-# Criar diretórios necessários e configurar Sequelize antes de mudar permissões
+# Criar diretórios necessários
 RUN mkdir -p /usr/src/app/uploads && \
     mkdir -p /usr/src/app/private && \
     mkdir -p /usr/src/app/logs && \
     mkdir -p /usr/src/app/config && \
     mkdir -p /usr/src/app/dist && \
-    mkdir -p /usr/src/app/public && \
-    echo "{\"development\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"test\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"production\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}}}" > /usr/src/app/config/config.json
+    mkdir -p /usr/src/app/public
 
 # Copiar apenas os arquivos necessários da etapa de build
 COPY --from=build /usr/src/app/dist ./dist
@@ -55,6 +54,7 @@ COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/package.json ./
 COPY --from=build /usr/src/app/start.sh ./
 COPY --from=build /usr/src/app/public ./public
+COPY --from=build /usr/src/app/config ./config
 
 # Definir permissões depois de copiar todos os arquivos
 RUN chmod +x /usr/src/app/start.sh && \
@@ -72,7 +72,9 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=3 \
 ENV NODE_ENV=production \
     PORT=3000 \
     FRONTEND_URL=${COOLIFY_FQDN} \
-    BASE_URL=${COOLIFY_URL}
+    BASE_URL=${COOLIFY_URL} \
+    EMAIL_ADDRESS=admin@admin.com \
+    DATABASE_URL=${DATABASE_URL}
 
 # Adicionar labels para o Traefik
 LABEL traefik.enable=true \
