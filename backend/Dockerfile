@@ -65,6 +65,7 @@ COPY --from=build /usr/src/app/public ./public
 COPY --from=build /usr/src/app/config ./config
 COPY --from=build /usr/src/app/src/database/seeds ./seeders
 COPY --from=build /usr/src/app/src/database/migrations ./migrations
+COPY --from=build /usr/src/app/.sequelizerc ./
 
 # Definir permissões depois de copiar todos os arquivos
 RUN chmod +x /usr/src/app/start.sh && \
