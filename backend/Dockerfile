@@ -38,11 +38,9 @@ RUN apk add --no-cache \
     wget \
     && npm install -g pm2
 
-# Criar diretórios necessários
-RUN mkdir -p /usr/src/app/{uploads,private,logs,config,dist,public}
-
-# Configurar Sequelize
-RUN echo '{"development":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"test":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"production":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}}}' > /usr/src/app/config/config.json
+# Criar diretórios necessários e configurar Sequelize
+RUN mkdir -p /usr/src/app/{uploads,private,logs,config,dist,public} && \
+    echo '{"development":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"test":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"production":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}}}' > /usr/src/app/config/config.json
 
 # Copiar apenas os arquivos necessários da etapa de build
 COPY --from=build /usr/src/app/dist ./dist
