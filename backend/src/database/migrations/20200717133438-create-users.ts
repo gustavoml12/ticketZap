@@ -1,51 +1,49 @@
-'use strict';
-
-const { QueryInterface, DataTypes } = require("sequelize");
+import { QueryInterface, DataTypes } from 'sequelize';
 
 module.exports = {
-  up: async (queryInterface: QueryInterface) => {
+  up: async (queryInterface: typeof QueryInterface) => {
     try {
-      await queryInterface.createTable("Users", {
+      await queryInterface.createTable('Users', {
         id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4,
+          allowNull: false,
           primaryKey: true,
-          allowNull: false
         },
         name: {
           type: DataTypes.STRING,
-          allowNull: false
+          allowNull: false,
         },
         email: {
           type: DataTypes.STRING,
           allowNull: false,
-          unique: true
+          unique: true,
         },
         passwordHash: {
           type: DataTypes.STRING,
-          allowNull: false
+          allowNull: false,
         },
         createdAt: {
           type: DataTypes.DATE,
-          allowNull: false
+          allowNull: false,
         },
         updatedAt: {
           type: DataTypes.DATE,
-          allowNull: false
-        }
+          allowNull: false,
+        },
       });
+      return Promise.resolve();
     } catch (error) {
-      console.error('Error creating Users table:', error);
-      throw error;
+      return Promise.reject(error);
     }
   },
 
-  down: async (queryInterface: QueryInterface) => {
+  down: async (queryInterface: typeof QueryInterface) => {
     try {
-      await queryInterface.dropTable("Users");
+      await queryInterface.dropTable('Users');
+      return Promise.resolve();
     } catch (error) {
-      console.error('Error dropping Users table:', error);
-      throw error;
+      return Promise.reject(error);
     }
   }
 };
