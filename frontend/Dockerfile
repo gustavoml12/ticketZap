@@ -23,9 +23,13 @@ RUN apk add --no-cache wget
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
 
+# Create update-config script
+RUN echo '#!/bin/sh\nif [ ! -z "$BACKEND_URL" ]; then\n  echo "{\"BACKEND_URL\":\"$BACKEND_URL\"}" > /usr/share/nginx/html/config.json\nfi' > /docker-entrypoint.d/40-update-config.sh \
+    && chmod +x /docker-entrypoint.d/40-update-config.sh
+
 # Set up permissions
-RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/nginx.conf /usr/share/nginx/html \
-    && chmod -R 755 /usr/share/nginx/html \
+RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/nginx.conf /usr/share/nginx/html /docker-entrypoint.d \
+    && chmod -R 755 /usr/share/nginx/html /docker-entrypoint.d \
     && touch /tmp/nginx.pid \
     && chown nginx:nginx /tmp/nginx.pid
 
