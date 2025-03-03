@@ -1,18 +1,20 @@
-# Use a imagem base Node.js
-FROM node:20-alpine AS build
+# syntax=docker/dockerfile:1.7-labs
+
+FROM node:20-alpine as build
 
 WORKDIR /usr/src/app
 
 # Copiar apenas os arquivos necessários para instalar dependências
 COPY package*.json ./
 
-# Instalar dependências
-RUN npm install
+# Instalar dependências usando cache
+RUN --mount=type=cache,target=/root/.npm \
+    npm install
 
 # Copiar o resto dos arquivos
 COPY . .
 
-# Compilar TypeScript
+# Compilar TypeScript (apenas uma vez)
 RUN npm run build
 
 # Configurar arquivos estáticos
@@ -24,10 +26,6 @@ RUN mkdir -p public/settings && \
 
 FROM node:20-alpine
 
-# Criar usuário não-root
-RUN addgroup -S appuser && \
-    adduser -S appuser -G appuser
-
 WORKDIR /usr/src/app
 
 # Instalar apenas as dependências necessárias
@@ -38,9 +36,18 @@ RUN apk add --no-cache \
     wget \
     && npm install -g pm2
 
-# Criar diretórios necessários e configurar Sequelize
-RUN mkdir -p /usr/src/app/{uploads,private,logs,config,dist,public} && \
-    echo '{"development":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"test":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"production":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}}}' > /usr/src/app/config/config.json
+# Criar usuário não-root
+RUN addgroup -S appuser && \
+    adduser -S appuser -G appuser
+
+# Criar diretórios necessários e configurar Sequelize antes de mudar permissões
+RUN mkdir -p /usr/src/app/uploads && \
+    mkdir -p /usr/src/app/private && \
+    mkdir -p /usr/src/app/logs && \
+    mkdir -p /usr/src/app/config && \
+    mkdir -p /usr/src/app/dist && \
+    mkdir -p /usr/src/app/public && \
+    echo "{\"development\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"test\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}},\"production\":{\"url\":\"${DATABASE_URL}\",\"dialect\":\"postgres\",\"timezone\":\"-03:00\",\"logging\":false,\"define\":{\"charset\":\"utf8\",\"collate\":\"utf8_general_ci\"},\"pool\":{\"max\":60,\"min\":5,\"acquire\":30000,\"idle\":10000},\"dialectOptions\":{\"ssl\":false}}}" > /usr/src/app/config/config.json
 
 # Copiar apenas os arquivos necessários da etapa de build
 COPY --from=build /usr/src/app/dist ./dist
@@ -49,13 +56,13 @@ COPY --from=build /usr/src/app/package.json ./
 COPY --from=build /usr/src/app/start.sh ./
 COPY --from=build /usr/src/app/public ./public
 
-# Definir permissões
+# Definir permissões depois de copiar todos os arquivos
 RUN chmod +x /usr/src/app/start.sh && \
     chown -R appuser:appuser /usr/src/app && \
     chmod -R 755 /usr/src/app
 
 # Configurar PM2
-RUN echo 'module.exports = {apps:[{name:"backend",script:"./dist/server.js",instances:1,exec_mode:"fork",watch:false,max_memory_restart:"1G",env:{NODE_ENV:"production"}}]}' > /usr/src/app/ecosystem.config.js
+RUN echo "module.exports = {apps:[{name:\"backend\",script:\"./dist/server.js\",instances:1,exec_mode:\"fork\",watch:false,max_memory_restart:\"1G\",env:{NODE_ENV:\"production\"}}]}" > /usr/src/app/ecosystem.config.js
 
 # Adicionar HEALTHCHECK
 HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=3 \
@@ -64,19 +71,15 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=3 \
 # Configurar variáveis de ambiente
 ENV NODE_ENV=production \
     PORT=3000 \
-    FRONTEND_URL=https://ticket.ebnez.com.br \
-    BASE_URL=/api
+    FRONTEND_URL=${COOLIFY_FQDN} \
+    BASE_URL=${COOLIFY_URL}
 
 # Adicionar labels para o Traefik
 LABEL traefik.enable=true \
-    traefik.http.middlewares.gzip.compress=true \
-    traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https \
-    traefik.http.routers.backend.entryPoints=http,https \
-    traefik.http.routers.backend.rule="Host(`ticket.ebnez.com.br`) && PathPrefix(`/api/`)" \
-    traefik.http.routers.backend.middlewares=gzip \
-    traefik.http.routers.backend.tls=true \
-    traefik.http.routers.backend.tls.certresolver=letsencrypt \
-    traefik.http.services.backend.loadbalancer.server.port=3000
+      traefik.http.routers.backend.rule="PathPrefix(`/api`)" \
+      traefik.http.services.backend.loadbalancer.server.port=3000 \
+      traefik.http.middlewares.backend-strip.stripprefix.prefixes=/api \
+      traefik.http.routers.backend.middlewares=backend-strip@docker
 
 USER appuser
 
