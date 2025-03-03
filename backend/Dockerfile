@@ -52,7 +52,8 @@ RUN mkdir -p /usr/src/app/uploads && \
     mkdir -p /usr/src/app/config && \
     mkdir -p /usr/src/app/dist && \
     mkdir -p /usr/src/app/public/settings && \
-    mkdir -p /usr/src/app/seeders
+    mkdir -p /usr/src/app/seeders && \
+    mkdir -p /usr/src/app/migrations
 
 # Copiar apenas os arquivos necessários da etapa de build
 COPY --from=build /usr/src/app/dist ./dist
@@ -62,6 +63,7 @@ COPY --from=build /usr/src/app/start.sh ./
 COPY --from=build /usr/src/app/public ./public
 COPY --from=build /usr/src/app/config ./config
 COPY --from=build /usr/src/app/src/database/seeds ./seeders
+COPY --from=build /usr/src/app/src/database/migrations ./migrations
 
 # Definir permissões depois de copiar todos os arquivos
 RUN chmod +x /usr/src/app/start.sh && \
