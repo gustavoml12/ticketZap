@@ -1,5 +1,5 @@
 # Use a imagem base Node.js
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 
 WORKDIR /usr/src/app
 
@@ -24,6 +24,10 @@ RUN mkdir -p public/settings && \
 
 FROM node:20-alpine
 
+# Criar usuário não-root
+RUN addgroup -S appuser && \
+    adduser -S appuser -G appuser
+
 WORKDIR /usr/src/app
 
 # Instalar apenas as dependências necessárias
@@ -34,13 +38,11 @@ RUN apk add --no-cache \
     wget \
     && npm install -g pm2
 
-# Criar usuário não-root
-RUN addgroup -S appuser && \
-    adduser -S appuser -G appuser
+# Criar diretórios necessários
+RUN mkdir -p /usr/src/app/{uploads,private,logs,config,dist,public}
 
-# Criar diretórios necessários e configurar Sequelize
-RUN mkdir -p /usr/src/app/{uploads,private,logs,config,dist,public} && \
-    echo '{"development":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"test":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"production":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}}}' > /usr/src/app/config/config.json
+# Configurar Sequelize
+RUN echo '{"development":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"test":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}},"production":{"url":"${DATABASE_URL}","dialect":"postgres","timezone":"-03:00","logging":false,"define":{"charset":"utf8","collate":"utf8_general_ci"},"pool":{"max":60,"min":5,"acquire":30000,"idle":10000},"dialectOptions":{"ssl":false}}}' > /usr/src/app/config/config.json
 
 # Copiar apenas os arquivos necessários da etapa de build
 COPY --from=build /usr/src/app/dist ./dist
@@ -64,7 +66,7 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=3 \
 # Configurar variáveis de ambiente
 ENV NODE_ENV=production \
     PORT=3000 \
-    FRONTEND_URL=${COOLIFY_FQDN} \
+    FRONTEND_URL=https://ticket.ebnez.com.br \
     BASE_URL=/api
 
 # Adicionar labels para o Traefik
