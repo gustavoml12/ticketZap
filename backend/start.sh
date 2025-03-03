@@ -50,14 +50,32 @@ done
 
 log "Conexão com PostgreSQL estabelecida."
 
+# Executar migrations e seeds
+log "Executando migrations..."
+cd /usr/src/app
+npx sequelize-cli db:migrate
+if [ $? -eq 0 ]; then
+    log "Migrations executadas com sucesso."
+else
+    error "Erro ao executar migrations."
+    exit 1
+fi
+
+log "Executando seeds..."
+npx sequelize-cli db:seed:all
+if [ $? -eq 0 ]; then
+    log "Seeds executados com sucesso."
+else
+    error "Erro ao executar seeds."
+    exit 1
+fi
+
 # Iniciar servidor Node.js
 log "Iniciando servidor Node.js..."
 if [ "$NODE_ENV" = "production" ]; then
     log "Modo de produção detectado. Usando PM2 para gerenciar o processo."
-    cd /usr/src/app
     pm2 start ecosystem.config.js --no-daemon
 else
     log "Modo de desenvolvimento detectado. Iniciando com Node."
-    cd /usr/src/app
     node dist/server.js
 fi
