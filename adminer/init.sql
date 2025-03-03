@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS "Users" (
     "super" BOOLEAN DEFAULT false,
     "companyId" INTEGER,
     "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
-    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL
+    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+    "online" BOOLEAN DEFAULT false
 );
 
 -- Tabela Companies
@@ -111,13 +112,12 @@ CREATE TABLE IF NOT EXISTS "Queues" (
     "id" SERIAL PRIMARY KEY,
     "name" VARCHAR(255) NOT NULL,
     "companyId" INTEGER,
+    "color" VARCHAR(255),
+    "greetingMessage" TEXT,
     "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
     "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
     FOREIGN KEY ("companyId") REFERENCES "Companies"("id") ON DELETE CASCADE
 );
-
--- Adicionar coluna greetingMessage à tabela Queues
-ALTER TABLE "Queues" ADD COLUMN IF NOT EXISTS "greetingMessage" TEXT DEFAULT '';
 
 -- Tabela Settings
 CREATE TABLE IF NOT EXISTS "Settings" (
@@ -242,19 +242,43 @@ CREATE INDEX IF NOT EXISTS "idx_messages_ticketId" ON "Messages"("ticketId");
 CREATE INDEX IF NOT EXISTS "idx_contacts_number" ON "Contacts"("number");
 CREATE INDEX IF NOT EXISTS "idx_users_email" ON "Users"("email");
 
--- Inserir usuário admin padrão
-INSERT INTO "Companies" ("name", "status", "createdAt", "updatedAt")
-VALUES ('Empresa Padrão', true, NOW(), NOW())
+-- Criar empresa padrão se não existir
+INSERT INTO "Companies" ("name", "status", "dueDate", "createdAt", "updatedAt", "schedules")
+VALUES ('Empresa Padrão', 'active', '2026-12-31', NOW(), NOW(), '[]')
+ON CONFLICT ("name") DO NOTHING;
+
+-- Criar configurações padrão para a empresa
+INSERT INTO "Settings" ("key", "value", "createdAt", "updatedAt", "companyId")
+SELECT 'userCreation', 'enabled', NOW(), NOW(), id
+FROM "Companies"
+WHERE "name" = 'Empresa Padrão'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO "Users" ("name", "email", "passwordHash", "profile", "super", "companyId", "createdAt", "updatedAt")
-VALUES (
-    'Admin',
-    'admin@admin.com',
-    '$2a$08$WG6GhHPpAWk6HrKD0PQqkuDZwLahH1X4HQh5TGNhO6F4TvQSJcG4.',
-    'admin',
-    true,
-    1,
-    NOW(),
-    NOW()
-) ON CONFLICT DO NOTHING;
+INSERT INTO "Settings" ("key", "value", "createdAt", "updatedAt", "companyId")
+SELECT 'call', 'disabled', NOW(), NOW(), id
+FROM "Companies"
+WHERE "name" = 'Empresa Padrão'
+ON CONFLICT DO NOTHING;
+
+-- Criar fila padrão
+INSERT INTO "Queues" ("name", "color", "greetingMessage", "createdAt", "updatedAt", "companyId")
+SELECT 'Fila Padrão', '#000000', 'Olá! Como posso ajudar?', NOW(), NOW(), id
+FROM "Companies"
+WHERE "name" = 'Empresa Padrão'
+ON CONFLICT DO NOTHING;
+
+-- Criar usuário admin
+INSERT INTO "Users" ("name", "email", "passwordHash", "profile", "tokenVersion", "createdAt", "updatedAt", "companyId", "super", "online")
+SELECT 'Admin', 'admin@admin.com', '$2a$08$WzQS8znsCe6HyFPTBVqGWOZJ5oBNKtSJVgpP/BX.U6QZHHoyQFydy', 'admin', 0, NOW(), NOW(), id, true, false
+FROM "Companies"
+WHERE "name" = 'Empresa Padrão'
+ON CONFLICT ("email") DO NOTHING;
+
+-- Associar usuário à fila
+INSERT INTO "UserQueues" ("userId", "queueId", "createdAt", "updatedAt")
+SELECT u.id, q.id, NOW(), NOW()
+FROM "Users" u
+CROSS JOIN "Queues" q
+WHERE u.email = 'admin@admin.com'
+AND q.name = 'Fila Padrão'
+ON CONFLICT DO NOTHING;
