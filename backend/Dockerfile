@@ -39,6 +39,7 @@ RUN apk add --no-cache \
     bash \
     redis \
     wget \
+    curl \
     && npm install -g pm2
 
 # Criar usuário não-root
@@ -87,10 +88,10 @@ ENV NODE_ENV=production \
 
 # Adicionar labels para o Traefik
 LABEL traefik.enable=true \
-      traefik.http.routers.backend.rule="PathPrefix(`/api`)" \
-      traefik.http.services.backend.loadbalancer.server.port=3000 \
-      traefik.http.middlewares.backend-strip.stripprefix.prefixes=/api \
-      traefik.http.routers.backend.middlewares=backend-strip@docker
+    traefik.http.routers.backend.rule="PathPrefix(`/api`)" \
+    traefik.http.services.backend.loadbalancer.server.port=3000 \
+    traefik.http.middlewares.backend-strip.stripprefix.prefixes=/api \
+    traefik.http.routers.backend.middlewares=backend-strip@docker
 
 USER appuser
 

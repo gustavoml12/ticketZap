@@ -1,4 +1,4 @@
-import { QueryInterface, DataTypes, Sequelize } from "sequelize";
+const { QueryInterface, DataTypes, Sequelize } = require("sequelize");
 
 module.exports = {
   up: (queryInterface: QueryInterface) => {
