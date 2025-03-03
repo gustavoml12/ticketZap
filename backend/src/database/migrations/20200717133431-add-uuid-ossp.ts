@@ -1,17 +1,21 @@
-'use strict';
+import { QueryInterface } from 'sequelize';
 
 module.exports = {
-  up: async (queryInterface) => {
+  up: async (queryInterface: QueryInterface) => {
     try {
-      await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+      await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
+      return Promise.resolve();
     } catch (error) {
-      console.error('Error creating uuid-ossp extension:', error);
-      throw error;
+      return Promise.reject(error);
     }
   },
 
-  down: async () => {
-    // Cannot drop extension as it might be used by other databases
-    return Promise.resolve();
+  down: async (queryInterface: QueryInterface) => {
+    try {
+      await queryInterface.sequelize.query('DROP EXTENSION IF EXISTS "uuid-ossp";');
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 };
