@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "build": "tsc --sourceMap false && cp -r src/config dist/ && cp -r src/models dist/",
+    "build": "tsc --sourceMap false && cp -r src/config dist/ && cp -r src/models dist/ && cp -r src/database/migrations dist/database/",
     "devbuild": "tsc --sourceMap true",
     "watch": "tsc -w",
     "start": "node dist/server.js",

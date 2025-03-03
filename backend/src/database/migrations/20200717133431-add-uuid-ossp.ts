@@ -1,14 +1,17 @@
-const { QueryInterface, DataTypes, Sequelize } = require("sequelize");
+'use strict';
 
 module.exports = {
-  up: (queryInterface: QueryInterface) => {
-    return Promise.all([
-      queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'),
-    ]);
+  up: async (queryInterface) => {
+    try {
+      await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+    } catch (error) {
+      console.error('Error creating uuid-ossp extension:', error);
+      throw error;
+    }
   },
 
-  down: (_) => {
+  down: async () => {
+    // Cannot drop extension as it might be used by other databases
     return Promise.resolve();
   }
-
 };
