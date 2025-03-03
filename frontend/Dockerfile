@@ -10,7 +10,19 @@ COPY . .
 ARG REACT_APP_BACKEND_URL=https://ticket.ebnez.com.br/api/
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 ENV NODE_ENV=production
-RUN echo '{"BACKEND_URL":"'${REACT_APP_BACKEND_URL}'"}' > public/config.json
+
+# Create settings directory and configuration files
+RUN mkdir -p public/settings && \
+    echo '{"color":"#007aff"}' > public/settings/primaryColorLight.json && \
+    echo '{"color":"#007aff"}' > public/settings/primaryColorDark.json && \
+    echo '{"name":"TicketZap"}' > public/settings/appName.json && \
+    echo '{"logo":"/vector/logo.svg"}' > public/settings/appLogoLight.json && \
+    echo '{"logo":"/vector/logo-dark.svg"}' > public/settings/appLogoDark.json && \
+    echo '{"favicon":"/vector/favicon.svg"}' > public/settings/appLogoFavicon.json && \
+    echo '{"mode":"light"}' > public/settings/theme.json && \
+    echo '{"allow":true}' > public/settings/allowSignup.json && \
+    echo '{"BACKEND_URL":"'${REACT_APP_BACKEND_URL}'"}' > public/config.json
+
 RUN npm run build
 
 # Production stage
