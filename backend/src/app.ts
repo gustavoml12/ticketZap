@@ -96,7 +96,20 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     return next(err);
   }
   
-  logger.error(err);
+  logger.error({
+    error: err,
+    isAppError: err instanceof AppError,
+    errorName: err.constructor.name,
+    stack: err.stack
+  });
+  
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json({ 
+      error: "Error",
+      message: err.message
+    });
+  }
+  
   return res.status(500).json({ 
     error: "Internal server error",
     message: err.message

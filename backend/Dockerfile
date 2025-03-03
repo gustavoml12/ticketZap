@@ -21,8 +21,13 @@ RUN npm run build
 RUN mkdir -p public/settings && \
     echo '{"name":"TicketZap","short_name":"TicketZap","start_url":"/","display":"standalone","theme_color":"#000000","background_color":"#ffffff"}' > public/manifest.json && \
     echo '{"value":"#2196f3"}' > public/settings/primaryColorLight.json && \
+    echo '{"value":"#2196f3"}' > public/settings/primaryColorDark.json && \
+    echo '{"value":"TicketZap"}' > public/settings/appName.json && \
     echo '{"value":""}' > public/settings/appLogoLight.json && \
-    echo '{"value":"light"}' > public/settings/theme.json
+    echo '{"value":""}' > public/settings/appLogoDark.json && \
+    echo '{"value":""}' > public/settings/appLogoFavicon.json && \
+    echo '{"value":"light"}' > public/settings/theme.json && \
+    echo '{"value":false}' > public/settings/allowSignup.json
 
 FROM node:20-alpine
 
@@ -46,7 +51,7 @@ RUN mkdir -p /usr/src/app/uploads && \
     mkdir -p /usr/src/app/logs && \
     mkdir -p /usr/src/app/config && \
     mkdir -p /usr/src/app/dist && \
-    mkdir -p /usr/src/app/public
+    mkdir -p /usr/src/app/public/settings
 
 # Copiar apenas os arquivos necessários da etapa de build
 COPY --from=build /usr/src/app/dist ./dist
